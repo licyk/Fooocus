@@ -19,7 +19,8 @@ import ldm_patched.modules.clip_vision
 import ldm_patched.modules.ops as ops
 
 from modules.ops import use_patched_ops
-from transformers import CLIPTextModel, CLIPTextConfig, CLIPVisionConfig, CLIPVisionModelWithProjection
+from modules.clip_models import FooocusCLIPTextModel
+from transformers import CLIPTextConfig, CLIPVisionConfig, CLIPVisionModelWithProjection
 from transformers.initialization import no_init_weights
 
 
@@ -81,7 +82,7 @@ def patched_SDClipModel__init__(self, max_length=77, freeze=True, layer="last", 
 
     with use_patched_ops(ops.manual_cast):
         with no_init_weights():
-            self.transformer = CLIPTextModel(config)
+            self.transformer = FooocusCLIPTextModel(config)
 
     if dtype is not None:
         self.transformer.to(dtype)

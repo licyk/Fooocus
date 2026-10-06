@@ -17,8 +17,10 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from transformers import CLIPConfig, CLIPVisionModel, PreTrainedModel
+from transformers import CLIPConfig, PreTrainedModel
 from transformers.utils import logging
+
+from modules.clip_models import FooocusCLIPVisionModel
 
 logger = logging.get_logger(__name__)
 
@@ -38,7 +40,7 @@ class StableDiffusionSafetyChecker(PreTrainedModel):
     def __init__(self, config: CLIPConfig):
         super().__init__(config)
 
-        self.vision_model = CLIPVisionModel(config.vision_config)
+        self.vision_model = FooocusCLIPVisionModel(config.vision_config)
         self.visual_projection = nn.Linear(config.vision_config.hidden_size, config.projection_dim, bias=False)
 
         self.concept_embeds = nn.Parameter(torch.ones(17, config.projection_dim), requires_grad=False)
@@ -46,6 +48,8 @@ class StableDiffusionSafetyChecker(PreTrainedModel):
 
         self.concept_embeds_weights = nn.Parameter(torch.ones(17), requires_grad=False)
         self.special_care_embeds_weights = nn.Parameter(torch.ones(3), requires_grad=False)
+
+        self.post_init()
 
     @torch.no_grad()
     def forward(self, clip_input, images):
