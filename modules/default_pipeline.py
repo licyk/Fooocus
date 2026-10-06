@@ -13,6 +13,8 @@ from extras.expansion import FooocusExpansion
 from ldm_patched.modules.model_base import SDXL, SDXLRefiner
 from modules.sample_hijack import clip_separate
 from modules.util import get_file_from_folder_list, get_enabled_loras
+from ldm_patched.modules.anima import AnimaModel
+from modules.anima import is_anima_file, resolve_vae
 
 
 model_base = core.StableDiffusionModel()
@@ -48,8 +50,8 @@ def refresh_controlnets(model_paths):
 def assert_model_integrity():
     error_message = None
 
-    if not isinstance(model_base.unet_with_lora.model, SDXL):
-        error_message = 'You have selected base model other than SDXL. This is not supported yet.'
+    if not isinstance(model_base.unet_with_lora.model, (SDXL, AnimaModel)):
+        error_message = 'Select an SDXL or Anima base model.'
 
     if error_message is not None:
         raise NotImplementedError(error_message)
@@ -67,6 +69,9 @@ def refresh_base_model(name, vae_name=None):
     vae_filename = None
     if vae_name is not None and vae_name != modules.flags.default_vae:
         vae_filename = get_file_from_folder_list(vae_name, modules.config.path_vae)
+
+    if is_anima_file(filename):
+        vae_filename = resolve_vae(vae_filename)
 
     if model_base.filename == filename and model_base.vae_filename == vae_filename:
         return
@@ -163,16 +168,11 @@ def clip_encode_single(clip, text, verbose=False):
 def clone_cond(conds):
     results = []
 
-    for c, p in conds:
-        p = p["pooled_output"]
-
-        if isinstance(c, torch.Tensor):
-            c = c.clone()
-
-        if isinstance(p, torch.Tensor):
-            p = p.clone()
-
-        results.append([c, {"pooled_output": p}])
+    for c, metadata in conds:
+        context = c.clone() if isinstance(c, torch.Tensor) else c
+        metadata = {key: value.clone() if isinstance(value, torch.Tensor) else value
+                    for key, value in metadata.items()}
+        results.append([context, metadata])
 
     return results
 
@@ -188,6 +188,9 @@ def clip_encode(texts, pool_top_k=1):
         return None
     if len(texts) == 0:
         return None
+
+    if is_anima():
+        return clone_cond(final_clip.encode('\n'.join(texts)))
 
     cond_list = []
     pooled_acc = 0
@@ -207,6 +210,9 @@ def set_clip_skip(clip_skip: int):
     global final_clip
 
     if final_clip is None:
+        return
+
+    if is_anima():
         return
 
     final_clip.clip_layer(-abs(clip_skip))
@@ -241,6 +247,11 @@ def refresh_everything(refiner_model_name, base_model_name, loras,
     final_refiner_unet = None
     final_refiner_vae = None
 
+    filename = get_file_from_folder_list(base_model_name, modules.config.paths_checkpoints)
+    if is_anima_file(filename):
+        refiner_model_name = 'None'
+        use_synthetic_refiner = False
+
     if use_synthetic_refiner and refiner_model_name == 'None':
         print('Synthetic Refiner Activated')
         refresh_base_model(base_model_name, vae_name)
@@ -265,6 +276,11 @@ def refresh_everything(refiner_model_name, base_model_name, loras,
     prepare_text_encoder(async_call=True)
     clear_all_caches()
     return
+
+
+def is_anima():
+    unet = model_base.unet_with_lora
+    return unet is not None and isinstance(unet.model, AnimaModel)
 
 
 refresh_everything(
@@ -338,6 +354,8 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         = final_unet, final_vae, final_refiner_unet, final_refiner_vae, final_clip
 
     assert refiner_swap_method in ['joint', 'separate', 'vae']
+    if is_anima():
+        refiner_swap_method = 'joint'
 
     if final_refiner_vae is not None and final_refiner_unet is not None:
         # Refiner Use Different VAE (then it is SD15)
@@ -359,7 +377,10 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
     print(f'[Sampler] refiner_swap_method = {refiner_swap_method}')
 
     if latent is None:
-        initial_latent = core.generate_empty_latent(width=width, height=height, batch_size=1)
+        if is_anima():
+            initial_latent = {'samples': torch.zeros(1, 16, height // 8, width // 8)}
+        else:
+            initial_latent = core.generate_empty_latent(width=width, height=height, batch_size=1)
     else:
         initial_latent = latent
 

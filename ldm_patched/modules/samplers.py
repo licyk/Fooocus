@@ -2,7 +2,7 @@ from ldm_patched.k_diffusion import sampling as k_diffusion_sampling
 from ldm_patched.unipc import uni_pc
 import torch
 import collections
-from ldm_patched.modules import model_management
+from ldm_patched.modules import model_management, model_sampling
 import math
 
 def get_area_and_mult(conds, x_in, timestep_in):
@@ -541,20 +541,21 @@ class KSAMPLER(Sampler):
         else:
             model_k.noise = noise
 
-        if self.max_denoise(model_wrap, sigmas):
-            noise = noise * torch.sqrt(1.0 + sigmas[0] ** 2.0)
-        else:
-            noise = noise * sigmas[0]
+        latent_image = latent_image if latent_image is not None else torch.zeros_like(noise)
+        noise = model_wrap.inner_model.model_sampling.noise_scaling(
+            sigmas[0], noise, latent_image, self.max_denoise(model_wrap, sigmas))
 
         k_callback = None
         total_steps = len(sigmas) - 1
         if callback is not None:
             k_callback = lambda x: callback(x["i"], x["denoised"], x["x"], total_steps)
 
-        if latent_image is not None:
-            noise += latent_image
-
-        samples = self.sampler_function(model_k, noise, sigmas, extra_args=extra_args, callback=k_callback, disable=disable_pbar, **self.extra_options)
+        sampler_function = self.sampler_function
+        if (isinstance(model_wrap.inner_model.model_sampling, model_sampling.ModelSamplingDiscreteFlow)
+                and sampler_function == k_diffusion_sampling.sample_euler_ancestral):
+            from ldm_patched.ldm.anima.sampling import sample_euler_ancestral_flow
+            sampler_function = sample_euler_ancestral_flow
+        samples = sampler_function(model_k, noise, sigmas, extra_args=extra_args, callback=k_callback, disable=disable_pbar, **self.extra_options)
         return samples
 
 

@@ -161,6 +161,15 @@ def load_lora(lora, to_load):
 
 def model_lora_keys_clip(model, key_map={}):
     sdk = model.state_dict().keys()
+    if 'model.embed_tokens.weight' in sdk:
+        for key in sdk:
+            if key.endswith('.weight'):
+                name = key[:-len('.weight')]
+                key_map[name] = key
+                key_map['text_encoder.' + name] = key
+                key_map['lora_te_' + name.replace('.', '_')] = key
+                key_map['lora_te1_' + name.replace('.', '_')] = key
+        return key_map
 
     text_model_lora_key = "lora_te_text_model_encoder_layers_{}_{}"
     clip_l_present = False
@@ -207,6 +216,16 @@ def model_lora_keys_unet(model, key_map={}):
         if k.startswith("diffusion_model.") and k.endswith(".weight"):
             key_lora = k[len("diffusion_model."):-len(".weight")].replace(".", "_")
             key_map["lora_unet_{}".format(key_lora)] = k
+
+    if model.model_config.unet_config.get('image_model') == 'anima':
+        for key in sdk:
+            if key.startswith('diffusion_model.') and key.endswith('.weight'):
+                name = key[:-len('.weight')]
+                key_map[name] = key
+                key_map[name[len('diffusion_model.'):]] = key
+                key_map['net.' + name[len('diffusion_model.'):]] = key
+                key_map['lora_transformer_' + name[len('diffusion_model.'):].replace('.', '_')] = key
+        return key_map
 
     diffusers_keys = ldm_patched.modules.utils.unet_to_diffusers(model.model_config.unet_config)
     for k in diffusers_keys:

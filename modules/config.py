@@ -193,6 +193,7 @@ paths_loras = get_dir_or_set_default('path_loras', ['../models/loras/'], True)
 path_embeddings = get_dir_or_set_default('path_embeddings', '../models/embeddings/')
 path_vae_approx = get_dir_or_set_default('path_vae_approx', '../models/vae_approx/')
 path_vae = get_dir_or_set_default('path_vae', '../models/vae/')
+path_text_encoders = get_dir_or_set_default('path_text_encoders', '../models/text_encoders/')
 path_upscale_models = get_dir_or_set_default('path_upscale_models', '../models/upscale_models/')
 path_inpaint = get_dir_or_set_default('path_inpaint', '../models/inpaint/')
 path_controlnet = get_dir_or_set_default('path_controlnet', '../models/controlnet/')
@@ -265,6 +266,10 @@ temp_path_cleanup_on_launch = get_config_item_or_set_default(
     validator=lambda x: isinstance(x, bool),
     expected_type=bool
 )
+anima_text_encoder = get_config_item_or_set_default(
+    'anima_text_encoder', 'qwen_3_06b_base.safetensors', lambda x: isinstance(x, str), expected_type=str)
+anima_vae = get_config_item_or_set_default(
+    'anima_vae', 'qwen_image_vae.safetensors', lambda x: isinstance(x, str), expected_type=str)
 default_base_model_name = default_model = get_config_item_or_set_default(
     key='default_model',
     default_value='model.safetensors',

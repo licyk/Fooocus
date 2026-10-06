@@ -970,7 +970,7 @@ def worker():
                         use_synthetic_refiner, width, show_intermediate_results=True, persist_image=True):
         base_model_additional_loras = []
         inpaint_head_model_path = None
-        inpaint_parameterized = inpaint_engine != 'None'  # inpaint_engine = None, improve detail
+        inpaint_parameterized = inpaint_engine != 'None' and not pipeline.is_anima()
         initial_latent = None
 
         prompt = prepare_enhance_prompt(prompt, async_task.prompt)
@@ -1071,6 +1071,9 @@ def worker():
     def handler(async_task: AsyncTask):
         preparation_start_time = time.perf_counter()
         async_task.processing = True
+
+        from modules.anima import prepare_task
+        prepare_task(async_task)
 
         async_task.outpaint_selections = [o.lower() for o in async_task.outpaint_selections]
         base_model_additional_loras = []

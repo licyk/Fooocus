@@ -1,4 +1,5 @@
 *.json
+!anima.json
 !anime.json
 !default.json
 !lcm.json

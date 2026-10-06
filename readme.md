@@ -24,6 +24,8 @@ Again, recently many fake websites exist on Google when you search “fooocus”
 
 # Features
 
+This fork also supports [Anima models](anima.md), with a dedicated `anima` preset.
+
 Below is a quick list using Midjourney's examples:
 
 | Midjourney | Fooocus |

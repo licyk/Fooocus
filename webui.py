@@ -658,7 +658,8 @@ with shared.gradio_root:
             with gr.Tab(label='Models', render_children=True):
                 with gr.Group():
                     with gr.Row():
-                        base_model = gr.Dropdown(label='Base Model (SDXL only)', choices=modules.config.model_filenames, value=modules.config.default_base_model_name, show_label=True)
+                        base_model = gr.Dropdown(label='Base Model (SDXL / Anima)', choices=modules.config.model_filenames, value=modules.config.default_base_model_name, show_label=True,
+                                                 info='Anima uses a separate Qwen3 text encoder and Qwen-Image VAE. Select the anima preset for its default settings.')
                         refiner_model = gr.Dropdown(label='Refiner (SDXL or SD 1.5)', choices=['None'] + modules.config.model_filenames, value=modules.config.default_refiner_model_name, show_label=True)
 
                     refiner_switch = gr.Slider(label='Refiner Switch At', minimum=0.1, maximum=1.0, step=0.0001,
