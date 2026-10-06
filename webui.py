@@ -21,6 +21,8 @@ from modules.sdxl_styles import legal_style_names
 from modules.private_logger import get_current_html_path
 from modules.ui_gradio_extensions import javascript_html, script_path
 from modules.ui_images import editor_to_inpaint
+from modules.tagcomplete.ui import build_settings as build_completion_settings, bind_context as bind_completion_context
+from modules.tagcomplete.api import lifespan as completion_lifespan
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
 
@@ -173,7 +175,7 @@ with shared.gradio_root:
             with gr.Row():
                 with gr.Column(scale=17):
                     prompt = gr.Textbox(show_label=False, placeholder="Type prompt here or paste parameters.", elem_id='positive_prompt',
-                                        autofocus=True, lines=3)
+                                        autofocus=True, lines=3, elem_classes=['fooocus-completion', 'completion-positive'])
 
                     default_prompt = modules.config.default_prompt
                     if isinstance(default_prompt, str) and default_prompt != '':
@@ -264,7 +266,8 @@ with shared.gradio_root:
                                 inpaint_input_image = gr.ImageEditor(label='Image', sources=['upload'], type='numpy', image_mode='RGBA', height=500, brush=gr.Brush(colors=['#FFFFFF'], color_mode='fixed'), transforms=(), layers=False, elem_id='inpaint_canvas', show_label=False)
                                 inpaint_advanced_masking_checkbox = gr.Checkbox(label='Enable Advanced Masking Features', value=modules.config.default_inpaint_advanced_masking_checkbox)
                                 inpaint_mode = gr.Dropdown(choices=modules.flags.inpaint_options, value=modules.config.default_inpaint_method, label='Method')
-                                inpaint_additional_prompt = gr.Textbox(placeholder="Describe what you want to inpaint.", elem_id='inpaint_additional_prompt', label='Inpaint Additional Prompt', visible='hidden')
+                                inpaint_additional_prompt = gr.Textbox(placeholder="Describe what you want to inpaint.", elem_id='inpaint_additional_prompt', label='Inpaint Additional Prompt', visible='hidden',
+                                                                      elem_classes=['fooocus-completion', 'completion-inpaint'])
                                 outpaint_selections = gr.CheckboxGroup(choices=['Left', 'Right', 'Top', 'Bottom'], value=[], label='Outpaint Direction')
                                 example_inpaint_prompts = gr.Dataset(samples=modules.config.example_inpaint_prompts,
                                                                      label='Additional Prompt Quick List',
@@ -432,10 +435,12 @@ with shared.gradio_root:
 
                             enhance_prompt = gr.Textbox(label="Enhancement positive prompt",
                                                         placeholder="Uses original prompt instead if empty.",
-                                                        elem_id='enhance_prompt')
+                                                        elem_id=f'enhance_prompt_{index}',
+                                                        elem_classes=['fooocus-completion', 'completion-enhance', 'completion-positive'])
                             enhance_negative_prompt = gr.Textbox(label="Enhancement negative prompt",
                                                                  placeholder="Uses original negative prompt instead if empty.",
-                                                                 elem_id='enhance_negative_prompt')
+                                                                 elem_id=f'enhance_negative_prompt_{index}',
+                                                                 elem_classes=['fooocus-completion', 'completion-enhance', 'completion-negative'])
 
                             with gr.Accordion("Detection", open=False):
                                 enhance_mask_model = gr.Dropdown(label='Mask generation model',
@@ -591,6 +596,7 @@ with shared.gradio_root:
                 negative_prompt = gr.Textbox(label='Negative Prompt', show_label=True, placeholder="Type prompt here.",
                                              info='Describing what you do not want to see.', lines=2,
                                              elem_id='negative_prompt',
+                                             elem_classes=['fooocus-completion', 'completion-negative'],
                                              value=modules.config.default_prompt_negative)
                 seed_random = gr.Checkbox(label='Random', value=True)
                 image_seed = gr.Textbox(label='Seed', value=0, max_lines=1, visible='hidden') # workaround for https://github.com/gradio-app/gradio/issues/5354
@@ -621,6 +627,9 @@ with shared.gradio_root:
 
                 history_link = gr.HTML()
                 shared.gradio_root.load(update_history_link, outputs=history_link, queue=False, show_progress="hidden")
+
+            with gr.Tab(label='Prompt Assistance', render_children=True):
+                build_completion_settings()
 
             with gr.Tab(label='Styles', elem_classes=['style_selections_tab'], render_children=True):
                 style_sorter.try_load_sorted_styles(
@@ -890,8 +899,10 @@ with shared.gradio_root:
                 if not args_manager.args.disable_preset_selection:
                     refresh_files_output += [preset_selection]
                 refresh_files.click(refresh_files_clicked, [], refresh_files_output + lora_ctrls,
-                                    queue=False, show_progress="hidden")
+                                    queue=False, show_progress="hidden").then(
+                    fn=None, queue=False, js="async () => { await window.FooocusTagComplete?.refresh(); }")
 
+        bind_completion_context(shared.gradio_root, base_model, refiner_model, style_selections)
         state_is_generating = gr.State(False)
 
         load_data_outputs = [advanced_checkbox, image_number, prompt, negative_prompt, style_selections,
@@ -1126,7 +1137,8 @@ def dump_default_english_config():
 
 shared.gradio_root.launch(
     head=javascript_html(),
-    css_paths=[os.path.join(script_path, 'css', 'style.css')],
+    css_paths=[os.path.join(script_path, 'css', 'style.css'), os.path.join(script_path, 'css', 'tagcomplete.css')],
+    app_kwargs={'lifespan': completion_lifespan},
     inbrowser=args_manager.args.in_browser,
     server_name=args_manager.args.listen,
     server_port=args_manager.args.port,

@@ -26,6 +26,8 @@ Again, recently many fake websites exist on Google when you search “fooocus”
 
 This fork also supports [Anima models](anima.md), with a dedicated `anima` preset.
 
+[Prompt assistance](tagcomplete.md) provides tag, artist, LoRA, embedding, wildcard, snippet and native Style completion. Configure it in **Advanced → Prompt Assistance**.
+
 Below is a quick list using Midjourney's examples:
 
 | Midjourney | Fooocus |
