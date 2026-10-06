@@ -114,8 +114,19 @@ def validate_sampling(sampler, scheduler):
 
 def prepare_task(task):
     filename = get_file_from_folder_list(task.base_model_name, config.paths_checkpoints)
-    if not is_anima_file(filename):
+    base_anima = is_anima_file(filename)
+    refiner_anima = False
+    if task.refiner_model_name != "None":
+        refiner_filename = get_file_from_folder_list(
+            task.refiner_model_name, config.paths_checkpoints
+        )
+        refiner_anima = is_anima_file(refiner_filename)
+    if not base_anima and not refiner_anima:
         return False
+    if base_anima and task.refiner_model_name != "None" and not refiner_anima:
+        raise ValueError(
+            "Anima base models require an Anima refiner or Refiner = None."
+        )
     if task.performance_selection in (
         flags.Performance.EXTREME_SPEED,
         flags.Performance.LIGHTNING,
@@ -134,9 +145,13 @@ def prepare_task(task):
         raise ValueError(
             "Anima cannot use SDXL Image Prompt, FaceSwap or ControlNet models. Use text prompts or Vary instead."
         )
-    task.refiner_model_name = "None"
-    task.refiner_swap_method = "joint"
+    if base_anima and task.refiner_model_name == "None":
+        task.refiner_swap_method = "joint"
+    elif not base_anima:
+        task.refiner_swap_method = "vae"
     task.freeu_enabled = False
     task.inpaint_engine = "None"
-    print("[Anima] SDXL refiner, FreeU and parameterized inpainter disabled.")
+    print(
+        "[Anima] FreeU and parameterized inpainter disabled; Anima refiner supported."
+    )
     return True

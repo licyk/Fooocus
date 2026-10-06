@@ -542,8 +542,12 @@ class KSAMPLER(Sampler):
             model_k.noise = noise
 
         latent_image = latent_image if latent_image is not None else torch.zeros_like(noise)
-        noise = model_wrap.inner_model.model_sampling.noise_scaling(
-            sigmas[0], noise, latent_image, self.max_denoise(model_wrap, sigmas))
+        if (isinstance(model_wrap.inner_model.model_sampling, model_sampling.ModelSamplingDiscreteFlow)
+                and extra_args['model_options'].get('anima_resume', False)):
+            noise = latent_image
+        else:
+            noise = model_wrap.inner_model.model_sampling.noise_scaling(
+                sigmas[0], noise, latent_image, self.max_denoise(model_wrap, sigmas))
 
         k_callback = None
         total_steps = len(sigmas) - 1

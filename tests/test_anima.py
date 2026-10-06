@@ -314,15 +314,15 @@ class TestAnima(unittest.TestCase):
             mixing_image_prompt_and_vary_upscale=False,
             mixing_image_prompt_and_inpaint=False,
             cn_tasks={"ip": ["old hidden image"]},
-            refiner_model_name="sdxl.safetensors",
+            refiner_model_name="anima-refiner.safetensors",
             refiner_swap_method="separate",
             freeu_enabled=True,
             inpaint_engine="v2.6",
         )
         with patch.object(anima, "is_anima_file", return_value=True):
             self.assertTrue(anima.prepare_task(task))
-            self.assertEqual(task.refiner_model_name, "None")
-            self.assertEqual(task.refiner_swap_method, "joint")
+            self.assertEqual(task.refiner_model_name, "anima-refiner.safetensors")
+            self.assertEqual(task.refiner_swap_method, "separate")
             self.assertFalse(task.freeu_enabled)
             self.assertEqual(task.inpaint_engine, "None")
             task.input_image_checkbox = True

@@ -9,6 +9,8 @@ from ldm_patched.k_diffusion import sampling as k_diffusion_sampling
 from ldm_patched.modules.samplers import normal_scheduler, simple_scheduler, ddim_scheduler
 from ldm_patched.modules.model_base import SDXLRefiner, SDXL
 from ldm_patched.modules.conds import CONDRegular
+from ldm_patched.modules.anima import AnimaModel
+from ldm_patched.modules.sample import convert_cond
 from ldm_patched.modules.sample import get_additional_models, get_models_from_cond, cleanup_additional_models
 from ldm_patched.modules.samplers import resolve_areas_and_cond_masks, wrap_model, calculate_start_end_timesteps, \
     create_cond_with_same_area_if_none, pre_run_control, apply_empty_x_to_equal_area, encode_model_conds
@@ -52,6 +54,21 @@ def clip_separate_inner(c, p, target_model=None, target_clip=None):
 @torch.no_grad()
 @torch.inference_mode()
 def clip_separate(cond, target_model=None, target_clip=None):
+    if isinstance(target_model, AnimaModel):
+        results = []
+        for context, metadata in cond:
+            if 'anima_refiner_conditioning' in metadata:
+                common = {key: value for key, value in metadata.items() if key not in (
+                    'anima_refiner_conditioning', 'pooled_output', 'model_conds', 'cross_attn', 't5xxl_ids', 't5xxl_weights')}
+                results.extend([[refiner_context, {**common, **refiner_metadata}]
+                                for refiner_context, refiner_metadata in metadata['anima_refiner_conditioning']])
+            elif 't5xxl_ids' in metadata:
+                results.append([context, {key: value for key, value in metadata.items()
+                                          if key != 'anima_refiner_conditioning'}])
+            else:
+                raise ValueError('Anima refiner requires Qwen/T5 conditioning. Encode prompts after loading the refiner.')
+        return [[context.clone(), {key: value.clone() if isinstance(value, torch.Tensor) else value
+                                   for key, value in metadata.items()}] for context, metadata in results]
     results = []
 
     for c, px in cond:
@@ -66,6 +83,10 @@ def clip_separate(cond, target_model=None, target_clip=None):
 @torch.no_grad()
 @torch.inference_mode()
 def clip_separate_after_preparation(cond, target_model=None, target_clip=None):
+    if isinstance(target_model, AnimaModel):
+        raw = [[entry['cross_attn'], {key: value for key, value in entry.items()
+                                     if key not in ('model_conds', 'cross_attn')}] for entry in cond]
+        return convert_cond(clip_separate(raw, target_model=target_model))
     results = []
 
     for x in cond:
@@ -125,14 +146,13 @@ def sample_hacked(model, noise, positive, negative, cfg, device, sampler, sigmas
         positive_refiner = clip_separate_after_preparation(positive, target_model=current_refiner.model)
         negative_refiner = clip_separate_after_preparation(negative, target_model=current_refiner.model)
 
-        positive_refiner = encode_model_conds(current_refiner.model.extra_conds, positive_refiner, noise, device, "positive", latent_image=latent_image, denoise_mask=denoise_mask)
-        negative_refiner = encode_model_conds(current_refiner.model.extra_conds, negative_refiner, noise, device, "negative", latent_image=latent_image, denoise_mask=denoise_mask)
+        if not isinstance(current_refiner.model, AnimaModel):
+            positive_refiner = encode_model_conds(current_refiner.model.extra_conds, positive_refiner, noise, device, "positive", latent_image=latent_image, denoise_mask=denoise_mask)
+            negative_refiner = encode_model_conds(current_refiner.model.extra_conds, negative_refiner, noise, device, "negative", latent_image=latent_image, denoise_mask=denoise_mask)
 
     def refiner_switch():
+        nonlocal positive_refiner, negative_refiner
         cleanup_additional_models(set(get_models_from_cond(positive, "control") + get_models_from_cond(negative, "control")))
-
-        extra_args["cond"] = positive_refiner
-        extra_args["uncond"] = negative_refiner
 
         # clear ip-adapter for refiner
         extra_args['model_options'] = {k: {} if k == 'transformer_options' else v for k, v in extra_args['model_options'].items()}
@@ -140,14 +160,26 @@ def sample_hacked(model, noise, positive, negative, cfg, device, sampler, sigmas
         models, inference_memory = get_additional_models(positive_refiner, negative_refiner, current_refiner.model_dtype())
         ldm_patched.modules.model_management.load_models_gpu(
             [current_refiner] + models,
-            model.memory_required([noise.shape[0] * 2] + list(noise.shape[1:])) + inference_memory)
+            current_refiner.model.memory_required([noise.shape[0] * 2] + list(noise.shape[1:])) + inference_memory)
+
+        if isinstance(current_refiner.model, AnimaModel):
+            for conditioning in (positive_refiner, negative_refiner):
+                resolve_areas_and_cond_masks(conditioning, noise.shape[2], noise.shape[3], device)
+                calculate_start_end_timesteps(current_refiner.model, conditioning)
+            positive_refiner = encode_model_conds(current_refiner.model.extra_conds, positive_refiner, noise, device, "positive", latent_image=latent_image, denoise_mask=denoise_mask)
+            negative_refiner = encode_model_conds(current_refiner.model.extra_conds, negative_refiner, noise, device, "negative", latent_image=latent_image, denoise_mask=denoise_mask)
+        extra_args["cond"] = positive_refiner
+        extra_args["uncond"] = negative_refiner
 
         model_wrap.inner_model = current_refiner.model
         print('Refiner Swapped')
         return
 
     def callback_wrap(step, x0, x, total_steps):
-        if step == refiner_switch_step and current_refiner is not None:
+        switch_step = refiner_switch_step
+        if current_refiner is not None and isinstance(current_refiner.model, AnimaModel):
+            switch_step = refiner_switch_step - 1 if 0 < refiner_switch_step < total_steps else -1
+        if step == switch_step and current_refiner is not None:
             refiner_switch()
         if callback is not None:
             # residual_noise_preview = x - x0
@@ -156,7 +188,8 @@ def sample_hacked(model, noise, positive, negative, cfg, device, sampler, sigmas
             callback(step, x0, x, total_steps)
 
     samples = sampler.sample(model_wrap, sigmas, extra_args, callback_wrap, noise, latent_image, denoise_mask, disable_pbar)
-    return model.process_latent_out(samples.to(torch.float32))
+    output_model = model_wrap.inner_model if isinstance(model, AnimaModel) else model
+    return output_model.process_latent_out(samples.to(torch.float32))
 
 
 @torch.no_grad()

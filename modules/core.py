@@ -277,9 +277,16 @@ def get_previewer(model):
 def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sampler_name='dpmpp_2m_sde_gpu',
              scheduler='karras', denoise=1.0, disable_noise=False, start_step=None, last_step=None,
              force_full_denoise=False, callback_function=None, refiner=None, refiner_switch=-1,
-             previewer_start=None, previewer_end=None, sigmas=None, noise_mean=None, disable_preview=False):
+             previewer_start=None, previewer_end=None, sigmas=None, noise_mean=None, disable_preview=False, resume=False):
     if model.model.model_type == ldm_patched.modules.model_base.ModelType.FLOW:
         modules.anima.validate_sampling(sampler_name, scheduler)
+    if refiner is not None and isinstance(refiner.model, modules.anima.AnimaModel):
+        modules.anima.validate_sampling(sampler_name, scheduler)
+        if not isinstance(model.model, modules.anima.AnimaModel):
+            raise ValueError('SDXL to Anima refinement requires the VAE bridge in process_diffusion.')
+    if resume:
+        model = model.clone()
+        model.model_options['anima_resume'] = True
 
     if sigmas is not None:
         sigmas = sigmas.clone().to(ldm_patched.modules.model_management.get_torch_device())

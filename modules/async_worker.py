@@ -514,7 +514,7 @@ def worker():
         if candidate_vae_swap is not None:
             if advance_progress:
                 current_progress += 1
-            progressbar(async_task, current_progress, 'VAE SD15 encoding ...')
+            progressbar(async_task, current_progress, 'VAE Refiner encoding ...')
             latent_swap = core.encode_vae(
                 vae=candidate_vae_swap,
                 pixels=inpaint_pixel_fill)['samples']
@@ -970,7 +970,8 @@ def worker():
                         use_synthetic_refiner, width, show_intermediate_results=True, persist_image=True):
         base_model_additional_loras = []
         inpaint_head_model_path = None
-        inpaint_parameterized = inpaint_engine != 'None' and not pipeline.is_anima()
+        inpaint_parameterized = (inpaint_engine != 'None' and not pipeline.is_anima()
+                                 and pipeline.final_refiner_clip is None)
         initial_latent = None
 
         prompt = prepare_enhance_prompt(prompt, async_task.prompt)
