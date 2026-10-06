@@ -177,14 +177,14 @@ function modalTileImageToggle(event) {
 }
 
 onAfterUiUpdate(function() {
-    var fullImg_preview = gradioApp().querySelectorAll('.image_gallery > div > img');
+    var fullImg_preview = gradioApp().querySelectorAll('.image_gallery img[data-testid="detailed-image"]');
     if (fullImg_preview != null) {
         fullImg_preview.forEach(setupImageForLightbox);
     }
     updateOnBackgroundChange();
 });
 
-document.addEventListener("DOMContentLoaded", function() {
+onUiLoaded(function() {
     //const modalFragment = document.createDocumentFragment();
     const modal = document.createElement('div');
     modal.onclick = closeModal;

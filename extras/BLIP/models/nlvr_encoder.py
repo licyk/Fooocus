@@ -12,7 +12,8 @@ from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
 from transformers.activations import ACT2FN
-from transformers.file_utils import (
+from transformers import initialization as init
+from transformers.utils import (
     ModelOutput,
 )
 from transformers.modeling_outputs import (
@@ -26,12 +27,12 @@ from transformers.modeling_outputs import (
     SequenceClassifierOutput,
     TokenClassifierOutput,
 )
-from transformers.modeling_utils import (
-    PreTrainedModel,
+from transformers.modeling_utils import PreTrainedModel
+from transformers.pytorch_utils import (
     apply_chunking_to_forward,
-    find_pruneable_heads_and_indices,
     prune_linear_layer,
 )
+from extras.BLIP.models.bert_utils import BertModelUtils, find_pruneable_heads_and_indices
 from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
 
@@ -580,7 +581,7 @@ class BertOnlyMLMHead(nn.Module):
         return prediction_scores
 
 
-class BertPreTrainedModel(PreTrainedModel):
+class BertPreTrainedModel(BertModelUtils, PreTrainedModel):
     """
     An abstract class to handle weights initialization and a simple interface for downloading and loading pretrained
     models.
@@ -595,12 +596,12 @@ class BertPreTrainedModel(PreTrainedModel):
         if isinstance(module, (nn.Linear, nn.Embedding)):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            init.normal_(module.weight, mean=0.0, std=self.config.initializer_range)
         elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
+            init.zeros_(module.bias)
+            init.ones_(module.weight)
         if isinstance(module, nn.Linear) and module.bias is not None:
-            module.bias.data.zero_()
+            init.zeros_(module.bias)
 
 
 class BertModel(BertPreTrainedModel):
@@ -623,7 +624,7 @@ class BertModel(BertPreTrainedModel):
 
         self.pooler = BertPooler(config) if add_pooling_layer else None
 
-        self.init_weights()
+        self.post_init()
  
 
     def get_input_embeddings(self):
@@ -840,4 +841,3 @@ class BertModel(BertPreTrainedModel):
             attentions=encoder_outputs.attentions,
             cross_attentions=encoder_outputs.cross_attentions,
         )
-

@@ -22,7 +22,8 @@ from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
 from transformers.activations import ACT2FN
-from transformers.file_utils import (
+from transformers import initialization as init
+from transformers.utils import (
     ModelOutput,
 )
 from transformers.modeling_outputs import (
@@ -36,12 +37,14 @@ from transformers.modeling_outputs import (
     SequenceClassifierOutput,
     TokenClassifierOutput,
 )
-from transformers.modeling_utils import (
-    PreTrainedModel,
+from transformers.modeling_utils import PreTrainedModel
+from transformers.pytorch_utils import (
     apply_chunking_to_forward,
-    find_pruneable_heads_and_indices,
     prune_linear_layer,
 )
+from transformers.generation import GenerationMixin
+from transformers.cache_utils import Cache, DynamicCache
+from extras.BLIP.models.bert_utils import BertModelUtils, find_pruneable_heads_and_indices
 from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
 
@@ -545,7 +548,7 @@ class BertOnlyMLMHead(nn.Module):
         return prediction_scores
 
 
-class BertPreTrainedModel(PreTrainedModel):
+class BertPreTrainedModel(BertModelUtils, PreTrainedModel):
     """
     An abstract class to handle weights initialization and a simple interface for downloading and loading pretrained
     models.
@@ -560,12 +563,12 @@ class BertPreTrainedModel(PreTrainedModel):
         if isinstance(module, (nn.Linear, nn.Embedding)):
             # Slightly different from the TF version which uses truncated_normal for initialization
             # cf https://github.com/pytorch/pytorch/pull/5617
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            init.normal_(module.weight, mean=0.0, std=self.config.initializer_range)
         elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
+            init.zeros_(module.bias)
+            init.ones_(module.weight)
         if isinstance(module, nn.Linear) and module.bias is not None:
-            module.bias.data.zero_()
+            init.zeros_(module.bias)
 
 
 class BertModel(BertPreTrainedModel):
@@ -588,7 +591,7 @@ class BertModel(BertPreTrainedModel):
 
         self.pooler = BertPooler(config) if add_pooling_layer else None
 
-        self.init_weights()
+        self.post_init()
  
 
     def get_input_embeddings(self):
@@ -808,7 +811,12 @@ class BertModel(BertPreTrainedModel):
 
 
 
-class BertLMHeadModel(BertPreTrainedModel):
+class BertLMHeadModel(BertPreTrainedModel, GenerationMixin):
+
+    _tied_weights_keys = {
+        'cls.predictions.decoder.weight': 'bert.embeddings.word_embeddings.weight',
+        'cls.predictions.decoder.bias': 'cls.predictions.bias',
+    }
 
     _keys_to_ignore_on_load_unexpected = [r"pooler"]
     _keys_to_ignore_on_load_missing = [r"position_ids", r"predictions.decoder.bias"]
@@ -819,7 +827,7 @@ class BertLMHeadModel(BertPreTrainedModel):
         self.bert = BertModel(config, add_pooling_layer=False)
         self.cls = BertOnlyMLMHead(config)
 
-        self.init_weights()
+        self.post_init()
 
     def get_output_embeddings(self):
         return self.cls.predictions.decoder
@@ -883,6 +891,12 @@ class BertLMHeadModel(BertPreTrainedModel):
         if labels is not None:
             use_cache = False
 
+        if isinstance(past_key_values, Cache):
+            past_key_values = (
+                tuple((layer.keys, layer.values) for layer in past_key_values.layers)
+                if past_key_values.get_seq_length() else None
+            )
+
         outputs = self.bert(
             input_ids,
             attention_mask=attention_mask,
@@ -923,33 +937,28 @@ class BertLMHeadModel(BertPreTrainedModel):
         return CausalLMOutputWithCrossAttentions(
             loss=lm_loss,
             logits=prediction_scores,
-            past_key_values=outputs.past_key_values,
+            past_key_values=DynamicCache(ddp_cache_data=outputs.past_key_values) if outputs.past_key_values is not None else None,
             hidden_states=outputs.hidden_states,
             attentions=outputs.attentions,
             cross_attentions=outputs.cross_attentions,
         )
 
-    def prepare_inputs_for_generation(self, input_ids, past=None, attention_mask=None, **model_kwargs):
+    def prepare_inputs_for_generation(self, input_ids, past_key_values=None, attention_mask=None, **model_kwargs):
         input_shape = input_ids.shape
         # if model is used as a decoder in encoder-decoder model, the decoder attention mask is created on the fly
         if attention_mask is None:
             attention_mask = input_ids.new_ones(input_shape)
 
         # cut decoder_input_ids if past is used
-        if past is not None:
+        if past_key_values is not None and past_key_values.get_seq_length() > 0:
             input_ids = input_ids[:, -1:]
 
         return {
             "input_ids": input_ids, 
             "attention_mask": attention_mask, 
-            "past_key_values": past,
+            "past_key_values": past_key_values,
+            "use_cache": model_kwargs.get("use_cache", True),
             "encoder_hidden_states": model_kwargs.get("encoder_hidden_states", None),
             "encoder_attention_mask": model_kwargs.get("encoder_attention_mask", None),
             "is_decoder": True,
         }
-
-    def _reorder_cache(self, past, beam_idx):
-        reordered_past = ()
-        for layer_past in past:
-            reordered_past += (tuple(past_state.index_select(0, beam_idx) for past_state in layer_past),)
-        return reordered_past

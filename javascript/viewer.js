@@ -59,6 +59,7 @@ onUiLoaded(async () => {
 
 function on_style_selection_blur() {
     let target = document.querySelector("#gradio_receiver_style_selections textarea");
+    if (!target) return;
     target.value = "on_style_selection_blur " + Math.random();
     let e = new Event("input", {bubbles: true})
     Object.defineProperty(e, "target", {value: target})
@@ -72,11 +73,11 @@ onUiLoaded(async () => {
         span.innerHTML = span.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     });
 
-    document.querySelector('.style_selections').addEventListener('focusout', function (event) {
+    document.addEventListener('focusout', function (event) {
+        const styles = event.target.closest('.style_selections');
+        if (!styles) return;
         setTimeout(() => {
-            if (!this.contains(document.activeElement)) {
-                on_style_selection_blur();
-            }
+            if (!styles.contains(document.activeElement)) on_style_selection_blur();
         }, 200);
     });
 

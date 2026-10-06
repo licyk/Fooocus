@@ -2,26 +2,25 @@ torch>=2.8.0
 torchvision>=0.23.0
 torchsde==0.2.6
 einops==0.8.2
-# BLIP's custom decoder uses the GenerationMixin inheritance removed in 4.52.
-transformers==4.51.3
+# Gradio 6 requires Hub 1.x; 5.0 retains Fooocus's CLIP checkpoint layout.
+transformers==5.0.0
 safetensors==0.8.0
 accelerate==1.15.0
 pyyaml==6.0.3
-# Gradio 3 requires Pillow <11 and NumPy 1.x.
 pillow==10.4.0
 scipy==1.15.3
 tqdm==4.70.1
 psutil==7.2.2
 pytorch_lightning==2.6.6
 omegaconf==2.3.1
-gradio==3.50.2
+gradio==6.29.1
 pygit2==1.18.2
 opencv-contrib-python-headless==4.11.0.86
 httpx==0.28.1
 onnxruntime==1.23.2
 timm==1.0.30
 numpy==1.26.4
-tokenizers==0.21.4
+tokenizers==0.22.2
 packaging==26.3
 rembg==2.0.69
 groundingdino-py==0.4.0

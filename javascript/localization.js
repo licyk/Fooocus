@@ -52,6 +52,7 @@ function processTextNode(node) {
 }
 
 function processNode(node) {
+    if (!node) return;
     if (node.nodeType == 3) {
         processTextNode(node);
         return;
@@ -81,8 +82,9 @@ function refresh_style_localization() {
 }
 
 function refresh_aspect_ratios_label(value) {
-    label = document.querySelector('#aspect_ratios_accordion div span');
-    translation = getTranslation("Aspect Ratios");
+    const label = document.querySelector('#aspect_ratios_accordion .label-wrap span');
+    if (!label) return;
+    let translation = getTranslation("Aspect Ratios");
     if (typeof translation == "undefined") {
         translation = "Aspect Ratios";
     }
@@ -118,7 +120,7 @@ function localizeWholePage() {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+onUiLoaded(function() {
     if (!hasLocalization()) {
         return;
     }

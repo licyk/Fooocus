@@ -17,7 +17,7 @@ var contextMenuInit = function() {
             oldMenu.remove();
         }
 
-        let baseStyle = window.getComputedStyle(gradioApp().querySelector('button.selected'));
+        let baseStyle = window.getComputedStyle(element);
 
         const contextMenu = document.createElement('nav');
         contextMenu.id = "context-menu";
@@ -159,8 +159,4 @@ let cancelGenerateForever = function() {
 })();
 //End example Context Menu Items
 
-document.onreadystatechange = function () {
-    if (document.readyState == "complete") {
-        addContextMenuEventListener();
-    }
-};
+onUiLoaded(addContextMenuEventListener);
