@@ -23,13 +23,23 @@ modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = os.path.dirname(modules_path)
 
 
-def is_installed(package):
+def is_installed(package, minimum_version=None):
     try:
         spec = importlib.util.find_spec(package)
     except ModuleNotFoundError:
         return False
 
-    return spec is not None
+    if spec is None:
+        return False
+
+    if minimum_version is not None:
+        try:
+            installed_version = importlib.metadata.version(package)
+        except importlib.metadata.PackageNotFoundError:
+            return False
+        return packaging.version.parse(installed_version) >= packaging.version.parse(minimum_version)
+
+    return True
 
 
 def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live) -> str:
