@@ -94,17 +94,54 @@ def build_settings():
         js="(config) => { window.FooocusTagComplete?.finishSettings(config); }",
     )
 
-    with gr.Row():
-        save = gr.Button("Save as default", elem_id="tagcomplete_save")
-        reload = gr.Button("Load server defaults", elem_id="tagcomplete_reload")
-        reset = gr.Button("Restore built-in defaults", elem_id="tagcomplete_reset")
-    with gr.Row():
-        refresh = gr.Button(
-            "Refresh completion datasets", elem_id="tagcomplete_refresh"
-        )
-        clear = gr.Button(
-            "Clear my completion usage", elem_id="tagcomplete_clear_usage"
-        )
+    actions = [
+        (
+            "tagcomplete_save",
+            "Save as default",
+            (
+                "Save these settings as server defaults for new browsers. "
+                "Existing browsers keep their preferences."
+            ),
+        ),
+        (
+            "tagcomplete_reload",
+            "Load server defaults",
+            "Apply the saved server defaults to this browser.",
+        ),
+        (
+            "tagcomplete_reset",
+            "Restore built-in defaults",
+            (
+                "Restore this browser to the built-in defaults without changing "
+                "the saved server defaults."
+            ),
+        ),
+        (
+            "tagcomplete_refresh",
+            "Refresh completion datasets",
+            (
+                "Rescan tags, translations, prompt snippets, models and wildcards "
+                "after adding or editing files."
+            ),
+        ),
+        (
+            "tagcomplete_clear_usage",
+            "Clear my completion usage",
+            (
+                "Delete completion usage for the current login and reset frequency ranking. "
+                "Without login, this clears shared local usage."
+            ),
+        ),
+    ]
+    buttons = []
+    with gr.Accordion("Actions", open=False, elem_id="tagcomplete_actions"):
+        for identifier, label, description in actions:
+            with gr.Row():
+                buttons.append(
+                    gr.Button(label, elem_id=identifier, scale=1, min_width=160)
+                )
+                gr.Markdown(description, scale=2, min_width=180)
+    save, reload, reset, refresh, clear = buttons
 
     def save_defaults(*values):
         try:
