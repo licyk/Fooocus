@@ -59,6 +59,37 @@ check('Fooocus insertion syntax, artist prefix and literal escaping', () => {
     assert.equal(engine.sanitize({name:'foo_artist',kind:'tag',category:1},defaults,{kind:'artist'}),'@foo artist');
     assert.equal(engine.sanitize({name:'atago_(azur_lane)',kind:'tag',category:4},defaults,{}),'atago \\(azur lane\\)');
 });
+check('upstream comma insertion handles end, closing brackets and line breaks', () => {
+    const result={kind:'tag'};
+    for (const after of ['', ')', ']', '\nred hair', '\r\nred hair']) {
+        assert.equal(engine.completionSeparator(result,defaults,after),', ');
+    }
+    for (const after of [', dog', ':1.2), dog']) {
+        assert.equal(engine.completionSeparator(result,defaults,after),'');
+    }
+    const original='(blue), red hair', ctx=engine.context(original,5);
+    const insertion='blue hair'+engine.completionSeparator(result,defaults,original.slice(ctx.end));
+    assert.equal(original.slice(0,ctx.start)+insertion+original.slice(ctx.end),'(blue hair, ), red hair');
+    const weighted='(blue:1.2), dog', weightCtx=engine.context(weighted,5);
+    const weightInsertion='blue hair'+engine.completionSeparator(result,defaults,weighted.slice(weightCtx.end));
+    assert.equal(weighted.slice(0,weightCtx.start)+weightInsertion+weighted.slice(weightCtx.end),'(blue hair:1.2), dog');
+});
+check('upstream separator settings preserve comma and end-space controls', () => {
+    const result={kind:'tag'};
+    assert.equal(engine.completionSeparator(result,{...defaults,append_comma:false},''),' ');
+    assert.equal(engine.completionSeparator(result,{...defaults,append_space:false,space_at_end:false},''),',');
+    assert.equal(engine.completionSeparator(result,{...defaults,append_space:false},''),', ');
+    assert.equal(engine.completionSeparator(result,{...defaults,append_space:false},'\nnext'),',');
+    assert.equal(engine.completionSeparator(result,defaults,'',false),'');
+});
+check('upstream LoRA and wildcard exceptions do not receive a comma', () => {
+    assert.equal(engine.completionSeparator({kind:'lora'},defaults,''),' ');
+    assert.equal(engine.completionSeparator({kind:'lora'},{...defaults,append_comma:false,append_space:false},''),' ');
+    assert.equal(engine.completionSeparator({kind:'wildcard'},defaults,''),'');
+    assert.equal(engine.completionSeparator({kind:'style'},defaults,''),'');
+    assert.equal(engine.completionSeparator({kind:'embedding'},defaults,''),', ');
+    assert.equal(engine.completionSeparator({kind:'wildcard_value'},defaults,''),', ');
+});
 check('frequency boost respects negative role, expiry and cap', () => {
     const settings={...defaults,frequency:true,frequency_min:1,frequency_function:'usage_first'};
     const index=engine.buildIndex(datasets,catalog,settings);

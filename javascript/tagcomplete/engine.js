@@ -237,7 +237,20 @@
         return settings.show_all ? results : results.slice(0, settings.max_results);
     }
 
-    const api = {parseCSV, context, sanitize, normalize, buildIndex, search, validateSettings};
+    // Ported from tagAutocomplete.js::insertTextAtCursor's optionalSeparator block.
+    function completionSeparator(result, settings, after, enabled = true) {
+        if (!enabled || ['wildcard', 'style'].includes(result.kind)) return '';
+        // Upstream extra networks use their own separator, defaulting to a space.
+        if (result.kind === 'lora') return ' ';
+        const beforeComma = /^[,:]/.test(after);
+        let optionalSeparator = '';
+        if (settings.append_comma) optionalSeparator = beforeComma ? '' : ',';
+        if (settings.append_space && !beforeComma) optionalSeparator += ' ';
+        if (!settings.append_space && settings.space_at_end && !after) optionalSeparator += ' ';
+        return optionalSeparator;
+    }
+
+    const api = {parseCSV, context, sanitize, normalize, buildIndex, search, validateSettings, completionSeparator};
     root.FooocusTagEngine = api;
     if (typeof module !== 'undefined') module.exports = api;
 })(typeof self !== 'undefined' ? self : globalThis);

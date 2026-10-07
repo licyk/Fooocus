@@ -814,7 +814,7 @@ export default {
             // autoSizeInput(this.$refs.promptTagAppend)
             this.completionDetach = window.FooocusTagComplete?.attach(this.$refs.promptTagAppend, {
                 role: this.historyKey === 'inpaint' ? 'inpaint' : this.historyKey.startsWith('enhance_') ? 'enhance' : this.neg ? 'negative' : 'positive',
-                negative: this.neg, appendSeparator: false,
+                negative: this.neg,
                 filter: result => !(this.blacklist[this.neg ? 'negative_prompt' : 'prompt'] || []).includes(result.name?.toLowerCase()),
                 capture: true,
                 onCommit: () => this.onAppendTagKeyDown({key: 'Enter', keyCode: 13, preventDefault() {}, stopPropagation() {}}),

@@ -22,6 +22,8 @@
 
 中文输入法组词期间不会打开补全。确认后才搜索。替换只影响光标所在的提示词片段，保留其权重和后续提示词。Fooocus 的 Ctrl+Enter 生成快捷键和 Ctrl+↑ / ↓ 权重快捷键保持优先。
 
+选择普通补全词后，按原扩展规则默认追加逗号和空格，光标移到分隔符后。紧接已有逗号或权重冒号时不重复添加；闭括号和换行前仍补分隔符。LoRA 默认追加空格，通配符文件名不追加逗号。可通过 **Append comma / Append space / Always append space at the end** 调整。Prompt All-in-One 的补全输入也使用此规则，加入标签后仍按其提示词格式设置生成文本。
+
 Anima 主模型或 Refiner 使用 Qwen/T5，不支持 textual inversion，因此选择任一 Anima 模型时会关闭 embedding 候选。LoRA 候选来自本地文件列表，是否适用于当前模型仍取决于 LoRA 自身。
 
 ## 设置与保存

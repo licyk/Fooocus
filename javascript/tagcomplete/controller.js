@@ -175,9 +175,7 @@
             }
         }
         const after = original.slice(ctx.end);
-        const needsSeparator = !['wildcard', 'style'].includes(result.kind) && !/^\s*[,\n\r:)\]]/.test(after);
-        const separator = needsSeparator && state.appendSeparator !== false ? (settings.append_comma ? ',' : '') +
-            (settings.append_space || (!after && settings.space_at_end) ? ' ' : '') : '';
+        const separator = engine.completionSeparator(result, settings, after, state.appendSeparator);
         let insertion = text + separator, caret = ctx.start + insertion.length;
         let full = original.slice(0, ctx.start) + insertion + after;
         if (result.kind === 'lora' && settings.trigger_words && result.keywords) {
