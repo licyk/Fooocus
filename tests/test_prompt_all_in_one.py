@@ -408,6 +408,26 @@ class TestUpstreamPromptEditor(unittest.TestCase):
             self.get("get_packages_state?provider=dictionary")["packages_state"], []
         )
 
+    def test_host_labels_are_translated_without_changing_provider_configuration(self):
+        from modules.prompt_all_in_one.upstream_api import provider_item
+
+        original = provider_item("dictionary")["name"]
+        with patch("modules.localization.current_translation", {
+            "Local dictionary / 本地词库": "本地词库",
+            "Endpoint": "服务地址",
+            "API key": "API 密钥",
+        }):
+            config = self.get("get_config")
+        apis = [item for group in config["translate_apis"]["apis"] for item in group["children"]]
+        local = next(item for item in apis if item["key"] == "dictionary")
+        self.assertEqual(local["name"], "本地词库")
+        self.assertEqual(provider_item("dictionary")["name"], original)
+        fields = [field for api in apis for field in api.get("config", [])]
+        self.assertTrue(any(field["title"] == "服务地址" for field in fields))
+        for field in fields:
+            if field.get("secret"):
+                self.assertEqual(field.get("default"), "")
+
     def test_original_history_favorite_link_rename_reorder_and_delete(self):
         tags = [
             {

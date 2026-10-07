@@ -27,6 +27,14 @@ from modules.prompt_all_in_one.ui import build_settings as build_prompt_editor_s
 from modules.prompt_all_in_one.api import private_paths as prompt_editor_private_paths
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
+from modules.localization import load_localization, translate_choices
+
+load_localization(args_manager.args.language)
+cloth_category_labels = {'full': 'Full body', 'upper': 'Upper body', 'lower': 'Lower body'}
+cloth_category_choices = translate_choices([
+    (cloth_category_labels.get(choice, choice), choice)
+    for choice in flags.inpaint_mask_cloth_category
+])
 
 def get_task(*args):
     args = list(args)
@@ -285,7 +293,7 @@ with shared.gradio_root:
                                                                  choices=flags.inpaint_mask_models,
                                                                  value=modules.config.default_inpaint_mask_model)
                                 inpaint_mask_cloth_category = gr.Dropdown(label='Cloth category',
-                                                             choices=flags.inpaint_mask_cloth_category,
+                                                             choices=cloth_category_choices,
                                                              value=modules.config.default_inpaint_mask_cloth_category,
                                                              visible='hidden')
                                 inpaint_mask_dino_prompt_text = gr.Textbox(label='Detection prompt', value='', visible='hidden', info='Use singular whenever possible', placeholder='Describe what you want to detect.')
@@ -449,7 +457,7 @@ with shared.gradio_root:
                                                                  choices=flags.inpaint_mask_models,
                                                                  value=modules.config.default_enhance_inpaint_mask_model)
                                 enhance_mask_cloth_category = gr.Dropdown(label='Cloth category',
-                                                                          choices=flags.inpaint_mask_cloth_category,
+                                                                          choices=cloth_category_choices,
                                                                           value=modules.config.default_inpaint_mask_cloth_category,
                                                                           visible=(modules.config.default_enhance_inpaint_mask_model == 'u2net_cloth_seg') or 'hidden',
                                                                           interactive=True)

@@ -4,6 +4,8 @@ import json
 
 import gradio as gr
 
+from modules.localization import translate_choices
+
 from .api import services
 from .config import DEFAULTS, FIELDS, validate_settings
 
@@ -55,7 +57,7 @@ def build_settings():
             elif choices == "color":
                 control = gr.ColorPicker(**arguments)
             else:
-                control = gr.Dropdown(**arguments, choices=choices)
+                control = gr.Dropdown(**arguments, choices=translate_choices(choices))
             control.input(
                 fn=None,
                 inputs=[control],

@@ -4,8 +4,12 @@ import json
 
 import gradio as gr
 
+from modules.localization import translate_choices
+
 from .api import model_capabilities, services
 from .config import DEFAULTS, FIELDS, validate_settings
+
+CHOICE_LABELS = {"wildcard_mode": {"full": "Full wildcard path"}}
 
 
 def build_settings():
@@ -25,7 +29,7 @@ def build_settings():
                 if group != field_group:
                     continue
                 value = defaults[key]
-                args = dict(label=label, value=value, elem_id=f"tagcomplete_{key}")
+                args = {"label": label, "value": value, "elem_id": f"tagcomplete_{key}"}
                 if kind == "bool":
                     control = gr.Checkbox(**args)
                 elif kind in ("int", "float"):
@@ -41,10 +45,13 @@ def build_settings():
                         row["name"] for row in datasets if row["name"].endswith(suffix)
                     ]
                     control = gr.Dropdown(
-                        **args, choices=list(dict.fromkeys([*choices, value]))
+                        **args,
+                        choices=translate_choices(list(dict.fromkeys([*choices, value]))),
                     )
                 elif kind == "choice":
-                    control = gr.Dropdown(**args, choices=bounds)
+                    labels = CHOICE_LABELS.get(key, {})
+                    choices = [(labels.get(choice, choice), choice) for choice in bounds]
+                    control = gr.Dropdown(**args, choices=translate_choices(choices))
                 elif kind == "categories":
                     control = gr.CheckboxGroup(
                         **args, choices=[str(i) for i in range(-1, 9)]
@@ -169,7 +176,8 @@ def build_settings():
                 ]
                 result.append(
                     gr.update(
-                        choices=choices, value=value if value in choices else "None"
+                        choices=translate_choices(choices),
+                        value=value if value in choices else "None",
                     )
                 )
             else:

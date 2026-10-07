@@ -15,6 +15,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
+from modules.localization import translate as translate_ui
 from modules.tagcomplete.api import current_user
 
 from .api import User, dictionary
@@ -41,6 +42,20 @@ def translation_metadata():
     return json.loads(
         Path(__file__).with_name("translate_apis.json").read_text(encoding="utf-8")
     )
+
+
+def localized_metadata(value):
+    """Translate host labels without modifying IDs, provider fields or values."""
+    if isinstance(value, list):
+        return [localized_metadata(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: translate_ui(item)
+            if key in {"name", "title"} and isinstance(item, str)
+            else localized_metadata(item)
+            for key, item in value.items()
+        }
+    return value
 
 
 def provider_item(name):
@@ -176,7 +191,7 @@ def create_router(settings, store):
     def config():
         return {
             "i18n": json.loads(LANGUAGES.read_text(encoding="utf-8")),
-            "translate_apis": translation_metadata(),
+            "translate_apis": localized_metadata(translation_metadata()),
             "python": sys.executable,
         }
 
@@ -452,7 +467,7 @@ def create_router(settings, store):
         if values.get("refiner") not in (None, "", "None"):
             counts["refiner"] = count(text, caps["refiner_anima"])
         label = " | ".join(
-            name
+            translate_ui("Base model" if name == "base" else "Refiner model")
             + ": "
             + ", ".join(
                 f"{kind} {number}"
@@ -594,14 +609,14 @@ def create_router(settings, store):
                         },
                     }
                 )
-            result.append({"name": name, "title": title, "items": items})
+            result.append({"name": name, "title": translate_ui(title), "items": items})
         from modules import config
 
         result.insert(
             0,
             {
                 "name": "checkpoints",
-                "title": "Base models",
+                "title": translate_ui("Base models"),
                 "items": [
                     {
                         "name": name,
@@ -680,7 +695,7 @@ def create_router(settings, store):
         return {
             "extensions": [
                 {
-                    "name": "Fooocus Tag Autocomplete",
+                    "name": translate_ui("Fooocus Tag Autocomplete"),
                     "enabled": True,
                     "url": "tagcomplete.md",
                 }

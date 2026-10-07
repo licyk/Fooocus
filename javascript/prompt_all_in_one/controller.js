@@ -9,9 +9,11 @@
     let availableProviders = [];
     let settings, defaults, storageKey, bridged = false, timer, bundle, session = 0, starting, preferenceRevision = 0;
     const controllers = new Set();
-    function status(text) {
+    const t = (...args) => window.FooocusI18n.t(...args);
+    function status(message, params) {
         const node = document.getElementById('prompt_all_in_one_status');
-        if (node) node.textContent = text;
+        const text = t(message, params);
+        if (node && node.textContent !== text) node.textContent = text;
     }
     function validate(values) {
         const result = {...defaults};
@@ -35,7 +37,7 @@
             const response = await fetch(new URL(path, root), {credentials: 'same-origin', ...options, signal: controller.signal});
             if (!response.ok) {
                 let detail; try { detail = (await response.json()).detail; } catch (_) { /* Non-JSON error. */ }
-                throw new Error(typeof detail === 'string' ? detail : `Prompt editor: HTTP ${response.status}`);
+                throw new Error(typeof detail === 'string' ? detail : t('Prompt editor: HTTP {status}', {status: response.status}));
             }
             const result = await response.json();
             if (activeOnly && (generation !== session || !settings?.enabled)) throw new DOMException('Editor disabled', 'AbortError');
@@ -123,7 +125,7 @@
                 if (changed) await application.setPrompts(prompts);
             }
             removed.forEach(node => node.remove());
-            status(`Prompt All-in-One enabled (${hosts.size} prompts).`);
+            status('Prompt All-in-One enabled ({count} prompts).', {count: hosts.size});
         } catch (error) { if (error.name !== 'AbortError') status(error.message); }
         finally {reconciling = false;}
     }

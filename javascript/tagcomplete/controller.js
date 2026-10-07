@@ -9,19 +9,21 @@
     let settings, defaults, schema, catalog, capabilities = {}, usage = [], worker, ready = false;
     let active, sequence = 0, request = 0, loading = 0, syncing = false, controlsSynced = false, rebuildTimer, started = false;
 
-    function status(message) {
+    const t = (...args) => window.FooocusI18n.t(...args);
+    function status(message, params) {
         const element = document.getElementById('tagcomplete_status');
-        if (element) element.textContent = message;
+        const text = t(message, params);
+        if (element && element.textContent !== text) element.textContent = text;
     }
     async function api(path, options = {}) {
         const response = await fetch(new URL(path, apiRoot), {credentials: 'same-origin', ...options});
-        if (!response.ok) throw new Error(`Completion service: HTTP ${response.status}`);
+        if (!response.ok) throw new Error(t('Completion service: HTTP {status}', {status: response.status}));
         return response.json();
     }
     async function asset(entry) {
         const key = entry.id + ':' + entry.modified;
         if (!assets.has(key)) assets.set(key, fetch(new URL(`asset/${entry.id}`, apiRoot), {credentials: 'same-origin'})
-            .then(response => { if (!response.ok) throw new Error(`Cannot load ${entry.name}`); return response.text(); })
+            .then(response => { if (!response.ok) throw new Error(t('Cannot load {name}', {name: entry.name})); return response.text(); })
             .catch(error => { assets.delete(key); throw error; }));
         return assets.get(key);
     }
@@ -231,7 +233,7 @@
         if (states.has(area)) return () => detach(area);
         const {role = 'positive', negative = false, container = area.parentElement, onCommit, appendSeparator = true, filter, capture = false} = options;
         const popup = document.createElement('div'); popup.className = 'ftc-popup'; popup.id = `ftc-popup-${++sequence}`; popup.hidden = true;
-        const list = document.createElement('ul'); list.role = 'listbox'; list.setAttribute('aria-label', 'Prompt completions');
+        const list = document.createElement('ul'); list.role = 'listbox'; list.setAttribute('aria-label', t('Prompt completions'));
         const image = document.createElement('img'); image.className = 'ftc-preview'; image.hidden = true;
         image.addEventListener('error', () => { image.hidden = true; });
         popup.append(list, image); document.body.appendChild(popup);
@@ -287,7 +289,7 @@
         for (const [kind, key] of [['main', 'tag_file'], ['translation', 'translation_file'], ['extra', 'extra_file'], ['chants', 'chant_file']]) {
             if (settings[key] === 'None') { datasets[kind] = ''; continue; }
             const entry = catalog.datasets.find(x => x.name === settings[key]);
-            if (!entry) throw new Error(`Completion dataset not found: ${settings[key]}`);
+            if (!entry) throw new Error(t('Completion dataset not found: {name}', {name: settings[key]}));
             datasets[kind] = await asset(entry);
         }
         if (loading !== id) return;
@@ -339,7 +341,7 @@
                     ready = true;
                     for (const entry of data.translations) translationMap.set(...entry);
                     for (const area of textareas) updateTranslation(states.get(area));
-                    status(`Prompt completion ready: ${data.count.toLocaleString()} entries.`);
+                    status('Prompt completion ready: {count} entries.', {count: data.count.toLocaleString()});
                     if (active) schedule(active);
                 }
                 else if (data.type === 'results' && ready && active?.request === data.id && request === data.id && !active.composing && active.area.value === active.value && active.area.selectionStart === active.cursor && active.area.selectionEnd === active.selectionEnd) show(active, data.results);
