@@ -174,7 +174,7 @@ with shared.gradio_root:
         with gr.Column(scale=2):
             with gr.Row():
                 progress_window = gr.Image(label='Preview', show_label=True, visible='hidden', height=768,
-                                            elem_classes=['main_view'])
+                                            elem_id='progress_window', elem_classes=['main_view'])
                 progress_gallery = gr.Gallery(label='Finished Images', show_label=True, object_fit='contain',
                                               height=768, visible='hidden', elem_classes=['main_view', 'image_gallery'])
             progress_html = gr.HTML(value=modules.html.make_progress_html(32, 'Progress 32%'), visible='hidden',

@@ -111,6 +111,18 @@ div:has(> #positive_prompt) {
   overflow: auto !important;
 }
 
+/* Upscale low-resolution generation previews to the available viewer area. */
+#progress_window .image-frame {
+  width: 100%;
+  min-width: 0;
+}
+
+#progress_window .image-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .performance_selection label {
     width: 140px !important;
 }
