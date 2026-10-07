@@ -67,12 +67,6 @@ function on_style_selection_blur() {
 }
 
 onUiLoaded(async () => {
-    let spans = document.querySelectorAll('.aspect_ratios span');
-
-    spans.forEach(function (span) {
-        span.innerHTML = span.innerHTML.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    });
-
     document.addEventListener('focusout', function (event) {
         const styles = event.target.closest('.style_selections');
         if (!styles) return;
