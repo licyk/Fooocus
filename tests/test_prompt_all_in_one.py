@@ -36,16 +36,16 @@ class TestPromptEditor(unittest.TestCase):
             **values,
         }
 
-    def test_default_disabled_and_validated_atomic_preferences(self):
+    def test_default_enabled_and_validated_atomic_preferences(self):
         self.assertFalse(self.store.path.exists())
-        self.assertFalse(
+        self.assertTrue(
             self.client.get("/prompt-all-in-one/v1/bootstrap").json()["settings"][
                 "enabled"
             ]
         )
         self.assertFalse(self.store.path.exists())
-        self.settings.save({"enabled": True})
-        self.assertTrue(self.settings.load()["enabled"])
+        self.settings.save({"enabled": False})
+        self.assertFalse(self.settings.load()["enabled"])
         for values in (
             {"enabled": 1},
             {"history_limit": True},

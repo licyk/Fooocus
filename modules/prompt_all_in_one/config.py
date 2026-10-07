@@ -8,7 +8,7 @@ from pathlib import Path
 
 # key, label, default, allowed choices (None means a checkbox)
 FIELDS = (
-    ("enabled", "Enable Prompt All-in-One", False, None),
+    ("enabled", "Enable Prompt All-in-One", True, None),
     ("positive", "Main positive prompt", True, None),
     ("negative", "Main negative prompt", True, None),
     ("inpaint", "Inpaint prompt", True, None),

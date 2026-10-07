@@ -36,7 +36,7 @@ def build_settings():
             "External services require configuration in the editor."
         )
         status = gr.Markdown(
-            "Prompt All-in-One disabled.", elem_id="prompt_all_in_one_status"
+            "Loading Prompt All-in-One preferences...", elem_id="prompt_all_in_one_status"
         )
         for key, label, _, choices in fields:
             arguments = {

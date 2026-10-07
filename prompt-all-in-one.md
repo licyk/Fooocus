@@ -1,6 +1,6 @@
 # Prompt All-in-One
 
-在 **Advanced → Prompt Assistance → Prompt All-in-One** 勾选 **Enable Prompt All-in-One**。默认关闭，主正向、主反向、Inpaint、Enhance 可独立启停。Tag Autocomplete 保留自己的开关。
+Prompt All-in-One 默认启用，可在 **Advanced → Prompt Assistance → Prompt All-in-One** 调整 **Enable Prompt All-in-One**。主正向、主反向、Inpaint、Enhance 可独立启停。Tag Autocomplete 保留自己的开关。已保存的服务器默认值和浏览器偏好仍按原有优先级生效。
 
 此版本直接复制 `~/code_workspace/sd-webui-prompt-all-in-one` 的源码，在源码基础上修改 Fooocus 宿主接入。原版 `App.vue`、全部 16 个 Vue 组件、标签/拖动/分类词库 mixin、分词与权重工具、历史收藏操作、108 种界面语言、图标和主题扩展均保留；上一版手写的简化组件与解析器已移除。[源码记录](frontend/prompt_all_in_one/UPSTREAM.json) 保存参考提交、来源路径及原始 SHA-256，便于以后与上游对比。
 
