@@ -12,6 +12,7 @@ import modules.sdxl_styles
 from modules.flags import MetadataScheme, Performance, Steps
 from modules.flags import SAMPLERS, CIVITAI_NO_KARRAS
 from modules.hash_cache import sha256_from_cache
+from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, RESIZE_METHODS
 from modules.util import quote, unquote, extract_styles_from_prompt, is_json, get_file_from_folder_list
 
 re_param_code = r'\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)'
@@ -59,6 +60,7 @@ def load_parameter_button_click(raw_metadata: dict | str, is_generating: bool, i
     results.append(gr.update(visible=False))
 
     get_freeu('freeu', 'FreeU', loaded_parameter_dict, results)
+    get_deep_shrink(loaded_parameter_dict, results)
 
     # prevent performance LoRAs to be added twice, by performance and by lora
     performance_filename = None
@@ -221,6 +223,29 @@ def get_freeu(key: str, fallback: str | None, source_dict: dict, results: list, 
         results.append(gr.update())
 
 
+def get_deep_shrink(source_dict: dict, results: list):
+    settings = DEEP_SHRINK_DEFAULTS.copy()
+    value = source_dict.get('deep_shrink', source_dict.get('UNet Deep Shrink'))
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            value = None
+    if isinstance(value, dict):
+        candidate = {key: value.get(key, default) for key, default in settings.items()}
+        if (
+            isinstance(candidate['enabled'], bool)
+            and isinstance(candidate['downscale_after_skip'], bool)
+            and isinstance(candidate['block_number'], int) and 1 <= candidate['block_number'] <= 32
+            and all(isinstance(candidate[key], (int, float)) and low <= candidate[key] <= high
+                    for key, low, high in [('downscale_factor', 0.1, 9.0), ('start_percent', 0.0, 1.0), ('end_percent', 0.0, 1.0)])
+            and candidate['downscale_method'] in RESIZE_METHODS
+            and candidate['upscale_method'] in RESIZE_METHODS
+        ):
+            settings = candidate
+    results.extend(settings.values())
+
+
 def get_lora(key: str, fallback: str | None, source_dict: dict, results: list, performance_filename: str | None):
     try:
         split_data = source_dict.get(key, source_dict.get(fallback)).split(' : ')
@@ -352,6 +377,7 @@ class A1111MetadataParser(MetadataParser):
         'clip_skip': 'Clip skip',
         'overwrite_switch': 'Overwrite Switch',
         'freeu': 'FreeU',
+        'deep_shrink': 'UNet Deep Shrink',
         'base_model': 'Model',
         'base_model_hash': 'Model hash',
         'refiner_model': 'Refiner',
@@ -494,7 +520,7 @@ class A1111MetadataParser(MetadataParser):
                 self.fooocus_to_a1111['refiner_model_hash']: self.refiner_model_hash
             }
 
-        for key in ['adaptive_cfg', 'clip_skip', 'overwrite_switch', 'refiner_swap_method', 'freeu']:
+        for key in ['adaptive_cfg', 'clip_skip', 'overwrite_switch', 'refiner_swap_method', 'freeu', 'deep_shrink']:
             if key in data:
                 generation_params[self.fooocus_to_a1111[key]] = data[key]
 

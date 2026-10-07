@@ -1,9 +1,11 @@
+import json
 import threading
 
 from modules.localization import translate
 from extras.inpaint_mask import generate_mask_from_image, SAMOptions
 from modules.patch import PatchSettings, patch_settings, patch_all
 import modules.config
+from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, apply_deep_shrink
 
 patch_all()
 
@@ -88,6 +90,7 @@ class AsyncTask:
         self.freeu_b2 = args.pop()
         self.freeu_s1 = args.pop()
         self.freeu_s2 = args.pop()
+        self.deep_shrink = {key: args.pop() for key in DEEP_SHRINK_DEFAULTS}
         self.debugging_inpaint_preprocessor = args.pop()
         self.inpaint_disable_initial_latent = args.pop()
         self.inpaint_engine = args.pop()
@@ -377,6 +380,9 @@ def worker():
             if async_task.freeu_enabled:
                 d.append(('FreeU', 'freeu',
                           str((async_task.freeu_b1, async_task.freeu_b2, async_task.freeu_s1, async_task.freeu_s2))))
+
+            if async_task.deep_shrink['enabled']:
+                d.append(('UNet Deep Shrink', 'deep_shrink', json.dumps(async_task.deep_shrink)))
 
             for li, (n, w) in enumerate(loras):
                 if n != 'None':
@@ -790,6 +796,8 @@ def worker():
             if pipeline.final_refiner_unet is not None:
                 pipeline.final_refiner_unet = patch_edm(pipeline.final_refiner_unet, async_task.scheduler_name)
 
+        pipeline.final_unet = apply_deep_shrink(pipeline.final_unet, **async_task.deep_shrink)
+        pipeline.final_refiner_unet = apply_deep_shrink(pipeline.final_refiner_unet, **async_task.deep_shrink)
         return final_scheduler_name
 
     def set_hyper_sd_defaults(async_task, current_progress, advance_progress=False):

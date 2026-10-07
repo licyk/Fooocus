@@ -28,6 +28,7 @@ from modules.prompt_all_in_one.api import private_paths as prompt_editor_private
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
 from modules.localization import load_localization, translate_choices
+from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, RESIZE_METHODS
 
 load_localization(args_manager.args.language)
 cloth_category_labels = {'full': 'Full body', 'upper': 'Upper body', 'lower': 'Lower body'}
@@ -719,6 +720,33 @@ with shared.gradio_root:
                                       value=modules.config.default_sample_sharpness,
                                       info='Higher value means image and texture are sharper.')
                 gr.HTML('<a href="https://github.com/lllyasviel/Fooocus/discussions/117" target="_blank">\U0001F4D4 Documentation</a>')
+                with gr.Accordion(label='UNet Deep Shrink', open=False, elem_id='deep_shrink_settings'):
+                    deep_shrink_enabled = gr.Checkbox(label='Enable UNet Deep Shrink', value=DEEP_SHRINK_DEFAULTS['enabled'],
+                                                      elem_id='deep_shrink_enabled',
+                                                      info='Temporarily shrinks UNet feature maps during denoising. Supports SDXL and SD 1.x UNet models; Anima is skipped.')
+                    with gr.Column(visible=False, elem_id='deep_shrink_parameters') as deep_shrink_parameters:
+                        deep_shrink_block = gr.Slider(label='UNet input block number', minimum=1, maximum=32, step=1,
+                                                     value=DEEP_SHRINK_DEFAULTS['block_number'], elem_id='deep_shrink_block_number')
+                        deep_shrink_factor = gr.Slider(label='UNet downscale factor', minimum=0.1, maximum=9.0, step=0.001,
+                                                      value=DEEP_SHRINK_DEFAULTS['downscale_factor'], elem_id='deep_shrink_downscale_factor')
+                        deep_shrink_start = gr.Slider(label='Deep Shrink start progress', minimum=0.0, maximum=1.0, step=0.001,
+                                                     value=DEEP_SHRINK_DEFAULTS['start_percent'], elem_id='deep_shrink_start_percent')
+                        deep_shrink_end = gr.Slider(label='Deep Shrink end progress', minimum=0.0, maximum=1.0, step=0.001,
+                                                   value=DEEP_SHRINK_DEFAULTS['end_percent'], elem_id='deep_shrink_end_percent')
+                        deep_shrink_after_skip = gr.Checkbox(label='Downscale after skip connection',
+                                                            value=DEEP_SHRINK_DEFAULTS['downscale_after_skip'], elem_id='deep_shrink_after_skip')
+                        deep_shrink_downscale_method = gr.Dropdown(label='UNet downscale method',
+                                                                 choices=translate_choices(RESIZE_METHODS), value=DEEP_SHRINK_DEFAULTS['downscale_method'],
+                                                                 elem_id='deep_shrink_downscale_method')
+                        deep_shrink_upscale_method = gr.Dropdown(label='UNet upscale method',
+                                                               choices=translate_choices(RESIZE_METHODS), value=DEEP_SHRINK_DEFAULTS['upscale_method'],
+                                                               elem_id='deep_shrink_upscale_method')
+                    deep_shrink_ctrls = [deep_shrink_enabled, deep_shrink_block, deep_shrink_factor,
+                                         deep_shrink_start, deep_shrink_end, deep_shrink_after_skip,
+                                         deep_shrink_downscale_method, deep_shrink_upscale_method]
+                    deep_shrink_enabled.change(lambda enabled: gr.update(visible=enabled),
+                                               inputs=deep_shrink_enabled, outputs=deep_shrink_parameters,
+                                               queue=False, show_progress='hidden')
                 dev_mode = gr.Checkbox(label='Developer Debug Mode', value=modules.config.default_developer_debug_mode_checkbox, container=False)
 
                 with gr.Column(visible=modules.config.default_developer_debug_mode_checkbox) as dev_tools:
@@ -924,7 +952,7 @@ with shared.gradio_root:
                              base_model, refiner_model, refiner_switch, sampler_name, scheduler_name, vae_name,
                              seed_random, image_seed, inpaint_engine, inpaint_engine_state,
                              inpaint_mode] + enhance_inpaint_mode_ctrls + [generate_button,
-                             load_parameter_button] + freeu_ctrls + lora_ctrls
+                             load_parameter_button] + freeu_ctrls + deep_shrink_ctrls + lora_ctrls
 
         if not args_manager.args.disable_preset_selection:
             def preset_selection_change(preset, is_generating, inpaint_mode):
@@ -1022,6 +1050,7 @@ with shared.gradio_root:
         ctrls += [debugging_cn_preprocessor, skipping_cn_preprocessor, canny_low_threshold, canny_high_threshold]
         ctrls += [refiner_swap_method, controlnet_softness]
         ctrls += freeu_ctrls
+        ctrls += deep_shrink_ctrls
         ctrls += inpaint_ctrls
 
         if not args_manager.args.disable_image_log:

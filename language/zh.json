@@ -955,5 +955,20 @@
     "Processing enhance ...": "正在增强图片…",
     "Saving image to system ...": "正在保存图片…",
     "Loading ...": "正在加载…",
-    "Progress {percent}%": "进度 {percent}%"
+    "Progress {percent}%": "进度 {percent}%",
+    "UNet Deep Shrink": "UNet 深度收缩",
+    "Enable UNet Deep Shrink": "启用 UNet 深度收缩",
+    "Temporarily shrinks UNet feature maps during denoising. Supports SDXL and SD 1.x UNet models; Anima is skipped.": "在去噪过程中暂时缩小 UNet 特征图。支持 SDXL 和 SD 1.x 的 UNet 模型；使用 Anima 时会跳过。",
+    "UNet input block number": "UNet 输入块编号",
+    "UNet downscale factor": "UNet 收缩倍率",
+    "Deep Shrink start progress": "收缩开始进度",
+    "Deep Shrink end progress": "收缩结束进度",
+    "Downscale after skip connection": "保存跳跃连接后收缩",
+    "UNet downscale method": "UNet 收缩插值方式",
+    "UNet upscale method": "UNet 恢复插值方式",
+    "bicubic": "双三次插值",
+    "nearest-exact": "精确最近邻插值",
+    "bilinear": "双线性插值",
+    "area": "面积插值",
+    "bislerp": "双球面插值"
 }
