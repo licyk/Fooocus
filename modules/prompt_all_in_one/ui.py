@@ -11,19 +11,34 @@ from .config import DEFAULTS, FIELDS, validate_settings
 def build_settings():
     store, _ = services()
     defaults = store.load()
+    fields = tuple(
+        field
+        for field in FIELDS
+        if field[0]
+        in {
+            "enabled",
+            "positive",
+            "negative",
+            "inpaint",
+            "enhance",
+            "hide_native",
+            "history",
+            "history_limit",
+        }
+    )
     controls = []
     with gr.Accordion(
         "Prompt All-in-One", open=False, elem_id="prompt_all_in_one_settings"
     ):
         gr.Markdown(
-            "Optional tag editor with translation, history, favorites and categorized tags. "
+            "Full upstream Prompt All-in-One editor. Language, translation, formatting, mouse shortcuts, blacklist and themes are configured in its original toolbar and dialogs. "
             "Preferences apply to this browser. The original prompts remain the generation inputs. "
             "External services require configuration in the editor."
         )
         status = gr.Markdown(
             "Prompt All-in-One disabled.", elem_id="prompt_all_in_one_status"
         )
-        for key, label, _, choices in FIELDS:
+        for key, label, _, choices in fields:
             arguments = {
                 "label": label,
                 "value": defaults[key],
@@ -55,7 +70,7 @@ def build_settings():
         )
 
         def to_ui(configuration):
-            return [configuration[key] for key, *_ in FIELDS] + [configuration]
+            return [configuration[key] for key, *_ in fields] + [configuration]
 
         def restore_browser(raw):
             try:
@@ -103,7 +118,7 @@ def build_settings():
         def save_defaults(*values):
             try:
                 configuration = store.save(
-                    {field[0]: value for field, value in zip(FIELDS, values)}
+                    {field[0]: value for field, value in zip(fields, values)}
                 )
             except ValueError as error:
                 raise gr.Error(str(error)) from error
@@ -129,3 +144,23 @@ def build_settings():
                 js="(config) => window.FooocusPromptAllInOne?.useSettings(config)",
             )
     return controls
+
+
+def bind_models(base_model):
+    """Route original Extra Networks checkpoint clicks through Gradio state."""
+    from modules import config
+
+    bridge = gr.Textbox(elem_id="prompt_all_in_one_model_bridge", visible="hidden")
+
+    def select_model(name):
+        if name not in config.model_filenames:
+            raise gr.Error("Model is no longer available; refresh the model list.")
+        return gr.update(value=name)
+
+    bridge.change(
+        select_model,
+        inputs=bridge,
+        outputs=base_model,
+        queue=False,
+        show_progress="hidden",
+    )

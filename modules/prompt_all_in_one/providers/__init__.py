@@ -80,6 +80,16 @@ def _offline_translate(config, texts, source, target):
         "pt": "pt_XX",
         "ru": "ru_RU",
     }
+    metadata = json.loads(
+        (Path(__file__).parents[1] / "translate_apis.json").read_text(encoding="utf-8")
+    )
+    for group in metadata["apis"]:
+        for provider in group["children"]:
+            if provider["key"] == "mbart50":
+                for locale, model_locale in provider["support"].items():
+                    if model_locale:
+                        languages[locale] = model_locale
+                        languages[model_locale] = model_locale
     if source not in languages or target not in languages:
         raise ProviderError("Offline translation requires an explicit source language")
     model_path = Path(config.get("model_path", ""))

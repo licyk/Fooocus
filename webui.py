@@ -23,7 +23,7 @@ from modules.ui_gradio_extensions import javascript_html, script_path
 from modules.ui_images import editor_to_inpaint
 from modules.tagcomplete.ui import build_settings as build_completion_settings, bind_context as bind_completion_context
 from modules.tagcomplete.api import lifespan as completion_lifespan
-from modules.prompt_all_in_one.ui import build_settings as build_prompt_editor_settings
+from modules.prompt_all_in_one.ui import build_settings as build_prompt_editor_settings, bind_models as bind_prompt_editor_models
 from modules.prompt_all_in_one.api import private_paths as prompt_editor_private_paths
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
@@ -906,6 +906,7 @@ with shared.gradio_root:
                     fn=None, queue=False, js="async () => { await window.FooocusTagComplete?.refresh(); }")
 
         bind_completion_context(shared.gradio_root, base_model, refiner_model, style_selections)
+        bind_prompt_editor_models(base_model)
         state_is_generating = gr.State(False)
 
         load_data_outputs = [advanced_checkbox, image_number, prompt, negative_prompt, style_selections,

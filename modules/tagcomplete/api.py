@@ -117,6 +117,8 @@ async def lifespan(app):
     app.include_router(create_router(*services()))
     from modules.prompt_all_in_one.api import create_router as editor_router, services as editor_services
     app.include_router(editor_router(*editor_services()))
+    from modules.prompt_all_in_one.upstream_api import create_router as upstream_router
+    app.include_router(upstream_router(*editor_services()))
     yield
 
 

@@ -5,6 +5,7 @@
     const version = new URL(document.currentScript.src).search;
     const root = new URL('./prompt-all-in-one/v1/', window.location.href);
     const hosts = new Map();
+    let application, applicationRoot, host, reconciling = false, bundleSheet;
     let availableProviders = [];
     let settings, defaults, storageKey, bridged = false, timer, bundle, session = 0, starting, preferenceRevision = 0;
     const controllers = new Set();
@@ -54,8 +55,8 @@
         }
     }
     function loadBundle() {
-        if (bundle) return bundle;
-        const sheet = document.createElement('link'); sheet.rel = 'stylesheet'; sheet.href = new URL('editor.css' + version, assets).href;
+        if (bundle) {bundleSheet.disabled = false; return bundle;}
+        const sheet = bundleSheet = document.createElement('link'); sheet.rel = 'stylesheet'; sheet.href = new URL('editor.css' + version, assets).href;
         document.head.appendChild(sheet);
         bundle = new Promise((resolve, reject) => {
             const script = document.createElement('script'); script.src = new URL('editor.js' + version, assets).href;
@@ -79,42 +80,63 @@
         if (enhance) return {key: `enhance_${enhance[1] || ''}${enhance[2]}`, role: 'enhance', negative: Boolean(enhance[1])};
         return null;
     }
-    function unmount(area, entry) {
-        entry.editor.flush(); entry.editor.destroy();
-        entry.container.classList.remove('pai-native-hidden'); entry.node.remove(); hosts.delete(area);
+    function descriptor(area, scope, node) {
+        const key = scope.key;
+        return {name: key, neg: scope.negative, historyKey: key, favoriteKey: key,
+            id: 'phystonPrompt_' + key, $prompt: area.closest('.fooocus-completion'), $textarea: area, $steps: {}, mount: node,
+            hideDefaultInputKey: key + 'HideDefaultInput', hideDefaultInput: settings.hide_native,
+            autoLoadWebuiPromptKey: key + 'AutoLoadWebuiPrompt', autoLoadWebuiPrompt: true,
+            hidePanelKey: key + 'HidePanel', hidePanel: false,
+            hideGroupTagsKey: key + 'HideGroupTags', hideGroupTags: false};
     }
     async function reconcile() {
         bridge();
-        if (!settings?.enabled) return;
+        if (!settings?.enabled || reconciling) return;
+        reconciling = true;
         const generation = session;
         try {
             const ui = await loadBundle();
             if (generation !== session || !settings.enabled) return;
+            const removed = [];
             for (const [area, entry] of hosts) {
-                if (!area.isConnected || !settings[entry.scope.role]) { unmount(area, entry); continue; }
-                entry.container.classList.toggle('pai-native-hidden', settings.hide_native);
-                entry.editor.sync(); entry.editor.configure(settings);
+                if (!area.isConnected || !settings[entry.scope.role]) {
+                    entry.container.classList.remove('pai-native-hidden'); removed.push(entry.node); hosts.delete(area);
+                }
             }
+            let changed = removed.length > 0;
             for (const area of document.querySelectorAll('.fooocus-completion textarea')) {
                 const scope = scopeFor(area);
                 if (!scope || !settings[scope.role] || hosts.has(area)) continue;
                 const container = area.closest('.fooocus-completion'), node = document.createElement('div');
                 node.className = 'pai-host'; node.dataset.scope = scope.key; container.appendChild(node);
-                const write = text => {
-                    if (area.value === text) return;
-                    area.value = text; area.dispatchEvent(new InputEvent('input', {bubbles: true, inputType: 'insertReplacementText'}));
-                };
-                const editor = ui.mount(node, {area, scope, settings, request, post, write, setSetting});
-                hosts.set(area, {editor, scope, container, node});
-                container.classList.toggle('pai-native-hidden', settings.hide_native);
+                const item = descriptor(area, scope, node);
+                hosts.set(area, {scope, container, node, item}); changed = true;
             }
+            const prompts = Array.from(hosts.values(), entry => entry.item);
+            if (!application) {
+                applicationRoot = document.createElement('div'); applicationRoot.id = 'physton-prompt-all-in-one';
+                document.querySelector('.gradio-container')?.appendChild(applicationRoot) || document.body.appendChild(applicationRoot);
+                host = {prompts, settings, abort: new AbortController(), setSetting, tooltip: true, user: storageKey};
+                application = ui.mount(applicationRoot, host);
+            } else {
+                application.configure(settings);
+                if (changed) await application.setPrompts(prompts);
+            }
+            removed.forEach(node => node.remove());
             status(`Prompt All-in-One enabled (${hosts.size} prompts).`);
         } catch (error) { if (error.name !== 'AbortError') status(error.message); }
+        finally {reconciling = false;}
     }
     function apply() {
         if (!settings.enabled) {
             ++session; clearInterval(timer); timer = undefined;
-            for (const [area, entry] of hosts) unmount(area, entry);
+            application?.flush(); host?.abort.abort(); application?.destroy(); application = undefined;
+            applicationRoot?.remove(); applicationRoot = undefined;
+            for (const entry of hosts.values()) {entry.container.classList.remove('pai-native-hidden'); entry.node.remove();}
+            hosts.clear();
+            if (bundleSheet) bundleSheet.disabled = true;
+            document.querySelectorAll('[id^="physton-prompt-extension-"]').forEach(node => node.remove());
+            window.phystonPromptfavorites = [];
             for (const controller of controllers) controller.abort();
             status('Prompt All-in-One disabled.');
         } else {
@@ -124,7 +146,10 @@
     }
     function setSetting(key, value) {
         if (!settings) return;
-        settings = validate({...settings, [key]: value}); save(); apply(); bridge(true);
+        settings = validate({...settings, [key]: value});
+        application?.setSetting(key, value);
+        if (key === 'hide_native') for (const entry of hosts.values()) entry.container.classList.toggle('pai-native-hidden', value);
+        save(); apply(); bridge(true);
     }
     function useSettings(value) { settings = validate(value); save(); apply(); bridge(true); }
     async function start() {
@@ -145,7 +170,8 @@
             if (value._bridge_revision !== preferenceRevision) return;
             settings = validate(value); save(); apply();
         },
-        flush() { for (const entry of hosts.values()) entry.editor.flush(); },
+        flush() { application?.flush(); },
+        get application() {return application?.vm;},
         get settings() { return settings; }, get mounted() { return hosts.size; },
     };
     onUiLoaded(start); onAfterUiUpdate(() => { bridge(); if (settings?.enabled) reconcile(); });

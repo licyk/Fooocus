@@ -202,3 +202,59 @@ class Store:
                 config.get("key") or any(options.get(key) for key in secret_fields)
             ),
         }
+
+    @contextmanager
+    def upstream(self, user):
+        """Serialize upstream history mutations and keep all data scoped to a login."""
+        with self.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS upstream_data (user TEXT NOT NULL, key TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(user, key))"
+            )
+            yield UpstreamStorage(connection, user)
+
+
+class UpstreamStorage:
+    """Storage.get/set contract used by the copied upstream History class."""
+
+    def __init__(self, connection, user):
+        self.connection = connection
+        self.user = user
+
+    def get(self, key):
+        row = self.connection.execute(
+            "SELECT data FROM upstream_data WHERE user=? AND key=?", (self.user, key)
+        ).fetchone()
+        if row:
+            return json.loads(row[0])
+        # Import the earlier native editor's history/favorites on first access.
+        if key.startswith(("history.", "favorite.")):
+            kind, scope = key.split(".", 1)
+            rows = self.connection.execute(
+                "SELECT * FROM entries WHERE user=? AND scope=? AND favorite=? ORDER BY position",
+                (self.user, scope, int(kind == "favorite")),
+            ).fetchall()
+            if rows:
+                entries = []
+                for row in rows:
+                    item = Store.document(row)
+                    item["tags"] = [
+                        {
+                            "id": str(uuid.uuid4()),
+                            "value": tag.get("value", tag.get("raw", "")),
+                            "localValue": tag.get("localValue", ""),
+                            "disabled": tag.get("disabled", False),
+                            "type": tag.get("type", "text"),
+                        }
+                        for tag in item["tags"]
+                    ]
+                    entries.append(item)
+                self.set(key, entries)
+                return entries
+        return None
+
+    def set(self, key, data):
+        self.connection.execute(
+            "INSERT OR REPLACE INTO upstream_data VALUES (?,?,?)",
+            (self.user, key, json.dumps(data, ensure_ascii=False)),
+        )

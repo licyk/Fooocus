@@ -231,7 +231,7 @@
     }
     function attach(area, options = {}) {
         if (states.has(area)) return () => detach(area);
-        const {role = 'positive', negative = false, container = area.parentElement, onCommit, appendSeparator = true, filter} = options;
+        const {role = 'positive', negative = false, container = area.parentElement, onCommit, appendSeparator = true, filter, capture = false} = options;
         const popup = document.createElement('div'); popup.className = 'ftc-popup'; popup.id = `ftc-popup-${++sequence}`; popup.hidden = true;
         const list = document.createElement('ul'); list.role = 'listbox'; list.setAttribute('aria-label', 'Prompt completions');
         const image = document.createElement('img'); image.className = 'ftc-preview'; image.hidden = true;
@@ -246,7 +246,7 @@
         listen('focus', () => { if (active !== state) hide(active); active = state; });
         listen('blur', () => hide(state));
         listen('click', () => schedule(state));
-        listen('keydown', event => keydown(state, event));
+        area.addEventListener('keydown', event => {keydown(state, event); if (capture && event.defaultPrevented) event.stopImmediatePropagation();}, {signal: abort.signal, capture});
         listen('keyup', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) schedule(state); });
         listen('compositionstart', () => { state.composing = true; clearTimeout(state.timer); hide(state); });
         listen('compositionend', () => { state.composing = false; schedule(state); });

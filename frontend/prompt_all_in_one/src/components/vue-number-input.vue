@@ -156,8 +156,7 @@ export default defineComponent({
                     // Avoid infinite loop
                     && newValue !== this.value
                 ) {
-                    // A host update (including mounting) must never edit a prompt.
-                    this.setValue(newValue, false);
+                    this.setValue(newValue);
                 }
             },
         },
@@ -220,7 +219,7 @@ export default defineComponent({
          * Set new value and dispatch change event.
          * @param {number} value - The new value to set.
          */
-        setValue(value: number, emit = true) {
+        setValue(value: number) {
             const oldValue = this.value;
             let newValue = typeof value !== 'number' ? parseFloat(value) : value;
 
@@ -241,7 +240,7 @@ export default defineComponent({
                 (this.$refs.input as HTMLInputElement).value = String(newValue);
             }
 
-            if (emit) this.$emit('update:modelValue', newValue, oldValue);
+            this.$emit('update:modelValue', newValue, oldValue);
         },
     },
 });

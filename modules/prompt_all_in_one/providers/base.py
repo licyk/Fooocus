@@ -87,8 +87,8 @@ def translate_upstream(name, configuration, texts, source, target):
     mapping = METADATA[name]["languages"]
     if (
         source == "auto"
-        or LANGUAGES.get(source) not in mapping
-        or LANGUAGES.get(target) not in mapping
+        or LANGUAGES.get(source, source) not in mapping
+        or LANGUAGES.get(target, target) not in mapping
     ):
         raise ProviderError(
             "This provider requires supported explicit source/target languages"
@@ -97,7 +97,7 @@ def translate_upstream(name, configuration, texts, source, target):
     adapter = getattr(
         importlib.import_module("." + module, __package__), CLASSES[name]
     )()
-    adapter.from_lang = mapping[LANGUAGES[source]]
-    adapter.to_lang = mapping[LANGUAGES[target]]
+    adapter.from_lang = mapping[LANGUAGES.get(source, source)]
+    adapter.to_lang = mapping[LANGUAGES.get(target, target)]
     adapter.set_api_config(configuration.get("options", {}))
     return adapter.translate_batch(texts)

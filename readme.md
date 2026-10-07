@@ -28,7 +28,7 @@ This fork also supports [Anima models](anima.md), with a dedicated `anima` prese
 
 [Prompt assistance](tagcomplete.md) provides tag, artist, LoRA, embedding, wildcard, snippet and native Style completion. Configure it in **Advanced → Prompt Assistance**.
 
-[Prompt All-in-One](prompt-all-in-one.md) adds an optional bilingual tag editor with weights, drag sorting, history, favorites, categorized tags and configurable translation. It is disabled by default and has its own switch.
+[Prompt All-in-One](prompt-all-in-one.md) ports the complete upstream Vue interface and editing logic, including weights, drag sorting, history, favorites, categorized tags, translation settings and theme extensions. It is disabled by default and has its own switch.
 
 Below is a quick list using Midjourney's examples:
 
