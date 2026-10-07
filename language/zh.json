@@ -940,5 +940,20 @@
     "Full body": "全身",
     "Upper body": "上身",
     "Lower body": "下身",
-    "Run history ({count})": "运行历史（{count}）"
+    "Run history ({count})": "运行历史（{count}）",
+    "Sampling step {step}/{steps}, image {index}/{total} ...": "正在生成图片 {index}/{total}，采样步数 {step}/{steps}…",
+    "Saving image {index}/{total} to system ...": "正在保存图片 {index}/{total}…",
+    "Preparing task {index}/{total} ...": "正在准备生成任务 {index}/{total}…",
+    "Preparing enhancement {index}/{total} ...": "正在准备增强任务 {index}/{total}…",
+    "Preparing Fooocus text #{index} ...": "正在扩展第 {index} 组 Fooocus 提示词…",
+    "Encoding positive #{index} ...": "正在编码第 {index} 组正面提示词…",
+    "Encoding negative #{index} ...": "正在编码第 {index} 组负面提示词…",
+    "Upscaling image from ({width}, {height}) ...": "正在放大图片，原始尺寸 {width}×{height}…",
+    "Checking for NSFW content ...": "正在检查 NSFW 内容…",
+    "VAE Refiner encoding ...": "正在进行精修模型的 VAE 编码…",
+    "Preparing enhance prompts ...": "正在准备增强提示词…",
+    "Processing enhance ...": "正在增强图片…",
+    "Saving image to system ...": "正在保存图片…",
+    "Loading ...": "正在加载…",
+    "Progress {percent}%": "进度 {percent}%"
 }
