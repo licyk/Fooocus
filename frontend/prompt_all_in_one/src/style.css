@@ -1,0 +1,45 @@
+.pai-host {width:100%; min-width:0;}
+.fooocus-completion.pai-native-hidden > :not(.pai-host) {display:none !important;}
+.pai-editor {--pai-bg:#fff; --pai-panel:#f4f5f7; --pai-text:#242833; --pai-border:#cdd2dc; --pai-accent:#4166cc; background:var(--pai-bg); color:var(--pai-text); border:1px solid var(--pai-border); border-radius:8px; padding:8px; margin-top:6px; font-size:13px; width:100%; box-sizing:border-box;}
+.dark .pai-editor.pai-theme-auto,.pai-editor.pai-theme-dark {--pai-bg:#20232b; --pai-panel:#2d313c; --pai-text:#e7e9ef; --pai-border:#4a5060; --pai-accent:#8eacff; color-scheme:dark;}
+.pai-editor button,.pai-editor input,.pai-editor select,.pai-editor textarea {font:inherit; color:var(--pai-text); background:var(--pai-bg); border:1px solid var(--pai-border); border-radius:4px; padding:4px 6px; box-sizing:border-box;}
+.pai-editor button {cursor:pointer; white-space:normal;}
+.pai-editor button:hover,.pai-editor button[aria-pressed=true] {border-color:var(--pai-accent); color:var(--pai-accent);}
+.pai-editor button:disabled {opacity:.45; cursor:default;}
+.pai-editor button:focus-visible,.pai-editor textarea:focus-visible,.pai-editor input:focus-visible {outline:2px solid var(--pai-accent); outline-offset:1px;}
+.pai-toolbar,.pai-batch,.pai-append {display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-bottom:6px;}
+.pai-toolbar strong {margin-right:6px;}
+.pai-text {width:100%; resize:vertical; min-height:80px;}
+.pai-tags {display:flex; flex-wrap:wrap; gap:6px; min-height:36px; max-height:350px; overflow:auto; padding:2px;}
+.pai-tag {display:flex; flex-wrap:wrap; align-items:center; gap:3px; border:1px solid var(--pai-border); background:var(--pai-panel); border-radius:5px; padding:4px; max-width:100%;}
+.pai-tag.pai-selected {outline:2px solid var(--pai-accent);}
+.pai-tag.pai-disabled {opacity:.5; text-decoration:line-through;}
+.pai-tag.pai-lora {border-left:4px solid var(--pai-lora);}
+.pai-tag.pai-embedding {border-left:4px solid var(--pai-embedding);}
+.pai-tag.pai-wildcard {border-left:4px solid var(--pai-wildcard);}
+.pai-tag .pai-tag-text {max-width:100%; width:160px; min-height:28px; resize:horizontal;}
+.pai-tag small {white-space:pre-wrap; max-width:150px;}
+.pai-tag .vue-number-input {width:70px; margin:0;}
+.pai-tag .vue-number-input input {width:70px; padding:2px; height:28px;}
+.pai-tag .pai-drag {cursor:grab; border:0; background:transparent;}
+.pai-append {margin-top:8px;}
+.pai-append textarea {flex:1; min-width:120px; resize:vertical;}
+.pai-panel {position:relative; border:1px solid var(--pai-border); padding:10px; background:var(--pai-panel); margin-top:8px; max-height:450px; overflow:auto;}
+.pai-panel h4 {font-weight:600; margin:0 24px 8px 0;}
+.pai-panel .pai-close {position:absolute; right:5px; top:5px;}
+.pai-panel label {display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0;}
+.pai-panel label input:not([type=checkbox]) {flex:1; min-width:100px;}
+.pai-panel textarea {width:100%; resize:vertical;}
+.pai-panel p {white-space:normal; margin-top:8px;}
+.pai-entries {list-style:none; padding:0; margin:8px 0;}
+.pai-entries li {padding:8px; border-top:1px solid var(--pai-border);}
+.pai-entries pre {font:inherit; white-space:pre-wrap; word-break:break-word; max-height:100px; overflow:auto; margin:6px 0;}
+.pai-entries button {margin-right:5px;}
+.pai-group-tags,.pai-models {display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;}
+.pai-group-tags small {display:block; opacity:.8;}
+.pai-panel details {margin:5px 0;}
+.pai-panel summary {cursor:pointer;}
+.pai-models button {display:flex; flex-direction:column; align-items:center; max-width:180px; overflow-wrap:anywhere;}
+.pai-models img {width:96px; height:96px; object-fit:cover;}
+.pai-editor footer {display:flex; flex-wrap:wrap; gap:8px; margin-top:5px; font-size:12px; opacity:.8;}
+.pai-editor footer [role=status] {overflow-wrap:anywhere;}

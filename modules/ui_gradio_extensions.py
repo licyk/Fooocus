@@ -37,6 +37,7 @@ def javascript_html():
     head += f'<script type="text/javascript" src="{image_viewer_js_path}"></script>\n'
     for filename in ['engine.js', 'caret.js', 'controller.js']:
         head += f'<script type="text/javascript" src="{webpath("javascript/tagcomplete/" + filename)}"></script>\n'
+    head += f'<script type="text/javascript" src="{webpath("javascript/prompt_all_in_one/controller.js")}"></script>\n'
     head += f'<meta name="samples-path" content="{samples_path}">\n'
 
     if args_manager.args.theme:

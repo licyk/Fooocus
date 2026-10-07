@@ -54,3 +54,7 @@ user_path_config-deprecated.txt
 /.coverage*
 /auth.json
 .DS_Store
+
+prompt_all_in_one_settings.json
+/userdata/
+/frontend/prompt_all_in_one/node_modules/

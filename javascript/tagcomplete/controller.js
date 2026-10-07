@@ -119,6 +119,7 @@
         state.rendered = end;
     }
     function show(state, results) {
+        if (state.filter) results = results.filter(state.filter);
         if (!results.length || document.activeElement !== state.area || !allowed(state)) { hide(state); return; }
         state.results = results; state.selected = -1; state.rendered = 0;
         state.list.replaceChildren(); appendRows(state);
@@ -147,6 +148,7 @@
         worker.postMessage({type: 'query', id, context: ctx, wildcardValues});
     }
     function schedule(state) {
+        if (!states.has(state.area)) return;
         clearTimeout(state.timer);
         state.timer = setTimeout(() => query(state).catch(error => status(error.message)), settings?.delay_ms || 0);
     }
@@ -174,7 +176,7 @@
         }
         const after = original.slice(ctx.end);
         const needsSeparator = !['wildcard', 'style'].includes(result.kind) && !/^\s*[,\n\r:)\]]/.test(after);
-        const separator = needsSeparator ? (settings.append_comma ? ',' : '') +
+        const separator = needsSeparator && state.appendSeparator !== false ? (settings.append_comma ? ',' : '') +
             (settings.append_space || (!after && settings.space_at_end) ? ' ' : '') : '';
         let insertion = text + separator, caret = ctx.start + insertion.length;
         let full = original.slice(0, ctx.start) + insertion + after;
@@ -188,6 +190,7 @@
         if (result.kind === 'lora' && settings.trigger_words && result.keywords) replace(state.area, 0, original.length, full, caret);
         else replace(state.area, ctx.start, ctx.end, insertion, caret);
         hide(state);
+        state.onCommit?.(state.area.value, result);
         if (settings.frequency && !partial) {
             await api('usage', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({name: result.name, kind: result.kind, negative: state.negative})});
             usage = await api('usage'); worker.postMessage({type: 'usage', usage});
@@ -218,33 +221,50 @@
             controlsSynced = bridge('tagcomplete_settings_bridge', JSON.stringify(settings));
         }
         for (const area of document.querySelectorAll('.fooocus-completion textarea')) {
-            if (states.has(area)) continue;
+            if (area.closest('.pai-host') || states.has(area)) continue;
             const container = area.closest('.fooocus-completion');
             const role = container.classList.contains('completion-inpaint') ? 'inpaint' :
                 container.classList.contains('completion-enhance') ? 'enhance' : container.classList.contains('completion-negative') ? 'negative' : 'positive';
-            const popup = document.createElement('div'); popup.className = 'ftc-popup'; popup.id = `ftc-popup-${++sequence}`; popup.hidden = true;
-            const list = document.createElement('ul'); list.role = 'listbox'; list.setAttribute('aria-label', 'Prompt completions');
-            const image = document.createElement('img'); image.className = 'ftc-preview'; image.hidden = true;
-            image.addEventListener('error', () => { image.hidden = true; });
-            popup.append(list, image); document.body.appendChild(popup);
-            const state = {area, role, negative: container.classList.contains('completion-negative'), popup, list, image, composing: false, selected: -1, results: []};
-            states.set(area, state); textareas.add(area);
-            area.setAttribute('aria-autocomplete', 'list'); area.setAttribute('aria-controls', popup.id); area.setAttribute('aria-expanded', 'false');
-            area.addEventListener('input', () => { hide(state); if (!state.composing) schedule(state); updateTranslation(state); });
-            area.addEventListener('focus', () => { if (active !== state) hide(active); active = state; });
-            area.addEventListener('blur', () => hide(state));
-            area.addEventListener('click', () => schedule(state));
-            area.addEventListener('keydown', event => keydown(state, event));
-            area.addEventListener('keyup', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) schedule(state); });
-            area.addEventListener('compositionstart', () => { state.composing = true; clearTimeout(state.timer); hide(state); });
-            area.addEventListener('compositionend', () => { state.composing = false; schedule(state); });
-            area.addEventListener('scroll', () => position(state));
-            popup.addEventListener('scroll', () => { if (popup.scrollTop + popup.clientHeight >= popup.scrollHeight - 60) appendRows(state); });
-            const translation = document.createElement('div'); translation.className = 'ftc-translation'; translation.hidden = true;
-            container.appendChild(translation); state.translation = translation;
-            if (document.activeElement === area) { hide(active); active = state; schedule(state); }
+            attach(area, {role, negative: container.classList.contains('completion-negative'), container});
         }
-        for (const area of textareas) if (!area.isConnected) { states.get(area).popup.remove(); textareas.delete(area); }
+        for (const area of textareas) if (!area.isConnected) detach(area);
+    }
+    function attach(area, options = {}) {
+        if (states.has(area)) return () => detach(area);
+        const {role = 'positive', negative = false, container = area.parentElement, onCommit, appendSeparator = true, filter} = options;
+        const popup = document.createElement('div'); popup.className = 'ftc-popup'; popup.id = `ftc-popup-${++sequence}`; popup.hidden = true;
+        const list = document.createElement('ul'); list.role = 'listbox'; list.setAttribute('aria-label', 'Prompt completions');
+        const image = document.createElement('img'); image.className = 'ftc-preview'; image.hidden = true;
+        image.addEventListener('error', () => { image.hidden = true; });
+        popup.append(list, image); document.body.appendChild(popup);
+        const abort = new AbortController();
+        const state = {area, role, negative, popup, list, image, onCommit, appendSeparator, filter, abort, composing: false, selected: -1, results: []};
+        states.set(area, state); textareas.add(area);
+        area.setAttribute('aria-autocomplete', 'list'); area.setAttribute('aria-controls', popup.id); area.setAttribute('aria-expanded', 'false');
+        const listen = (name, callback) => area.addEventListener(name, callback, {signal: abort.signal});
+        listen('input', () => { hide(state); if (!state.composing) schedule(state); updateTranslation(state); });
+        listen('focus', () => { if (active !== state) hide(active); active = state; });
+        listen('blur', () => hide(state));
+        listen('click', () => schedule(state));
+        listen('keydown', event => keydown(state, event));
+        listen('keyup', event => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) schedule(state); });
+        listen('compositionstart', () => { state.composing = true; clearTimeout(state.timer); hide(state); });
+        listen('compositionend', () => { state.composing = false; schedule(state); });
+        listen('scroll', () => position(state));
+        popup.addEventListener('scroll', () => { if (popup.scrollTop + popup.clientHeight >= popup.scrollHeight - 60) appendRows(state); });
+        const translation = document.createElement('div'); translation.className = 'ftc-translation'; translation.hidden = true;
+        container.appendChild(translation); state.translation = translation;
+        if (document.activeElement === area) { hide(active); active = state; schedule(state); }
+        return () => detach(area);
+    }
+    function detach(area) {
+        const state = states.get(area);
+        if (!state) return;
+        clearTimeout(state.timer); state.abort.abort(); hide(state);
+        if (active === state) { active = undefined; ++request; }
+        state.popup.remove(); state.translation.remove();
+        for (const name of ['aria-autocomplete', 'aria-controls', 'aria-expanded', 'aria-activedescendant']) area.removeAttribute(name);
+        states.delete(area); textareas.delete(area);
     }
     let translationMap = new Map();
     function updateTranslation(state) {
@@ -300,6 +320,7 @@
     }
     async function refresh() {
         catalog = await api('refresh', {method: 'POST'});
+        window.dispatchEvent(new Event('fooocus-completion-catalog'));
         assets.clear(); await rebuild();
     }
     async function start() {
@@ -308,6 +329,7 @@
         try {
             const data = await api('bootstrap');
             catalog = data.catalog; settings = defaults = data.settings; schema = data.schema;
+            window.dispatchEvent(new Event('fooocus-completion-catalog'));
             try {
                 const local = JSON.parse(localStorage.getItem(storageKey) || 'null');
                 if (local && typeof local === 'object' && !Array.isArray(local)) settings = engine.validateSettings({...defaults, ...local}, defaults, schema);
@@ -330,9 +352,11 @@
         } catch (error) { status(error.message); started = false; }
     }
     window.FooocusTagComplete = {
-        start, setSetting, useSettings, refresh,
+        start, setSetting, useSettings, refresh, attach, detach, hide,
+        translation(text) { return translationMap.get(engine.normalize(text)) || ''; },
+        get catalog() { return catalog; }, get capabilities() { return capabilities; },
         finishSettings(config) { syncing = false; useSettings(config); },
-        setCapabilities(value) { capabilities = value; ++request; worker?.postMessage({type: 'capabilities', capabilities}); hide(); if (active) schedule(active); },
+        setCapabilities(value) { capabilities = value; window.dispatchEvent(new CustomEvent('fooocus-model-capabilities', {detail: value})); ++request; worker?.postMessage({type: 'capabilities', capabilities}); hide(); if (active) schedule(active); },
         async clearUsage() { await api('usage', {method: 'DELETE'}); usage = []; worker?.postMessage({type: 'usage', usage}); status('Completion usage cleared for this login.'); },
         get settings() { return settings; }, get ready() { return ready; },
     };

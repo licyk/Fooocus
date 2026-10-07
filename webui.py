@@ -23,6 +23,8 @@ from modules.ui_gradio_extensions import javascript_html, script_path
 from modules.ui_images import editor_to_inpaint
 from modules.tagcomplete.ui import build_settings as build_completion_settings, bind_context as bind_completion_context
 from modules.tagcomplete.api import lifespan as completion_lifespan
+from modules.prompt_all_in_one.ui import build_settings as build_prompt_editor_settings
+from modules.prompt_all_in_one.api import private_paths as prompt_editor_private_paths
 from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
 
@@ -629,6 +631,7 @@ with shared.gradio_root:
                 shared.gradio_root.load(update_history_link, outputs=history_link, queue=False, show_progress="hidden")
 
             with gr.Tab(label='Prompt Assistance', render_children=True):
+                build_prompt_editor_settings()
                 build_completion_settings()
 
             with gr.Tab(label='Styles', elem_classes=['style_selections_tab'], render_children=True):
@@ -1145,5 +1148,5 @@ shared.gradio_root.launch(
     share=args_manager.args.share,
     auth=check_auth if (args_manager.args.share or args_manager.args.listen) and auth_enabled else None,
     allowed_paths=[modules.config.path_outputs, os.path.join(script_path, 'javascript'), os.path.join(script_path, 'sdxl_styles', 'samples')],
-    blocked_paths=[constants.AUTH_FILENAME]
+    blocked_paths=[constants.AUTH_FILENAME, *prompt_editor_private_paths()]
 )
