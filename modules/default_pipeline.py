@@ -12,12 +12,14 @@ from extras.expansion import FooocusExpansion
 
 from ldm_patched.modules.model_base import SDXL, SDXLRefiner
 from modules.sample_hijack import clip_separate
-from modules.util import get_file_from_folder_list, get_enabled_loras
+from modules.util import get_file_from_folder_list
 from ldm_patched.modules.anima import AnimaModel
 from modules.anima import is_anima_file, resolve_vae
 from modules.anima_refiner import sample_with_vae_bridge
 
 
+# Generation tasks populate these caches with their selected models and LoRAs.
+# Importing the pipeline must leave weights unloaded until a task needs them.
 model_base = core.StableDiffusionModel()
 model_refiner = core.StableDiffusionModel()
 
@@ -241,6 +243,9 @@ def clear_all_caches():
 @torch.no_grad()
 @torch.inference_mode()
 def prepare_text_encoder(async_call=True):
+    # Fast upscale and mask-only tasks can finish before any generation model is loaded.
+    if final_clip is None or final_expansion is None:
+        return
     if async_call:
         # TODO: make sure that this is always called in an async way so that users cannot feel it.
         pass
@@ -302,14 +307,6 @@ def refresh_everything(refiner_model_name, base_model_name, loras,
 def is_anima():
     unet = model_base.unet_with_lora
     return unet is not None and isinstance(unet.model, AnimaModel)
-
-
-refresh_everything(
-    refiner_model_name=modules.config.default_refiner_model_name,
-    base_model_name=modules.config.default_base_model_name,
-    loras=get_enabled_loras(modules.config.default_loras),
-    vae_name=modules.config.default_vae,
-)
 
 
 @torch.no_grad()
