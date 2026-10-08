@@ -30,6 +30,8 @@ from modules.util import is_json
 from modules.localization import load_localization, translate_choices
 from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, RESIZE_METHODS
 from modules.model_free_inpaint_ui import build_settings as build_inpaint_settings
+from modules.wd14tagger_ui import build_settings as build_tagger_settings
+from modules.describe import describe_image
 
 load_localization(args_manager.args.language)
 cloth_category_labels = {'full': 'Full body', 'upper': 'Upper body', 'lower': 'Lower body'}
@@ -366,6 +368,13 @@ with shared.gradio_root:
                                     choices=flags.describe_types,
                                     value=modules.config.default_describe_content_type)
                                 describe_apply_styles = gr.Checkbox(label='Apply Styles', value=modules.config.default_describe_apply_prompts_checkbox)
+                                describe_tagger_ctrls, describe_tagger_panel, describe_tagger_ratings, describe_tagger_confidence = build_tagger_settings(
+                                    modules.config.default_describe_tagger_model,
+                                    flags.describe_type_anime in modules.config.default_describe_content_type)
+                                describe_methods.change(
+                                    lambda modes: gr.update(visible=flags.describe_type_anime in modes),
+                                    inputs=describe_methods, outputs=describe_tagger_panel,
+                                    queue=False, show_progress="hidden")
                                 describe_btn = gr.Button(value='Describe this Image into Prompt')
                                 describe_image_size = gr.Textbox(label='Image Size and Recommended Size', elem_id='describe_image_size', visible='hidden')
                                 gr.HTML('<a href="https://github.com/lllyasviel/Fooocus/discussions/1363" target="_blank">\U0001F4D4 Documentation</a>')
@@ -1123,51 +1132,25 @@ with shared.gradio_root:
                 gr.Audio(interactive=False, value=notification_file, elem_id='audio_notification', visible='hidden')
                 break
 
-        def trigger_describe(modes, img, apply_styles):
-            describe_prompts = []
-            styles = set()
-
-            if flags.describe_type_photo in modes:
-                from extras.interrogate import default_interrogator as default_interrogator_photo
-                describe_prompts.append(default_interrogator_photo(img))
-                styles.update(["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp"])
-
-            if flags.describe_type_anime in modes:
-                from extras.wd14tagger import default_interrogator as default_interrogator_anime
-                describe_prompts.append(default_interrogator_anime(img))
-                styles.update(["Fooocus V2", "Fooocus Masterpiece"])
-
-            if len(styles) == 0 or not apply_styles:
-                styles = gr.update()
-            else:
-                styles = list(styles)
-
-            if len(describe_prompts) == 0:
-                describe_prompt = gr.update()
-            else:
-                describe_prompt = ', '.join(describe_prompts)
-
-            return describe_prompt, styles
-
-        describe_btn.click(trigger_describe, inputs=[describe_methods, describe_input_image, describe_apply_styles],
-                           outputs=[prompt, style_selections], show_progress="full", queue=True) \
+        describe_btn.click(describe_image, inputs=[describe_methods, describe_input_image, describe_apply_styles] + describe_tagger_ctrls,
+                           outputs=[prompt, style_selections, describe_tagger_ratings, describe_tagger_confidence], show_progress="full", queue=True) \
             .then(fn=style_sorter.sort_styles, inputs=style_selections, outputs=style_selections, queue=False, show_progress="hidden") \
             .then(lambda: None, js='()=>{refresh_style_localization();}')
 
         if args_manager.args.enable_auto_describe_image:
-            def trigger_auto_describe(mode, img, prompt, apply_styles):
+            def trigger_auto_describe(mode, img, prompt, apply_styles, *tagger_options):
                 # keep prompt if not empty
                 if prompt == '':
-                    return trigger_describe(mode, img, apply_styles)
+                    return describe_image(mode, img, apply_styles, *tagger_options)[:2]
                 return gr.update(), gr.update()
 
-            uov_input_image.upload(trigger_auto_describe, inputs=[describe_methods, uov_input_image, prompt, describe_apply_styles],
+            uov_input_image.upload(trigger_auto_describe, inputs=[describe_methods, uov_input_image, prompt, describe_apply_styles] + describe_tagger_ctrls,
                                    outputs=[prompt, style_selections], show_progress="full", queue=True) \
                 .then(fn=style_sorter.sort_styles, inputs=style_selections, outputs=style_selections, queue=False, show_progress="hidden") \
                 .then(lambda: None, js='()=>{refresh_style_localization();}')
 
             enhance_input_image.upload(lambda: gr.update(value=True), outputs=enhance_checkbox, queue=False, show_progress="hidden") \
-                .then(trigger_auto_describe, inputs=[describe_methods, enhance_input_image, prompt, describe_apply_styles],
+                .then(trigger_auto_describe, inputs=[describe_methods, enhance_input_image, prompt, describe_apply_styles] + describe_tagger_ctrls,
                       outputs=[prompt, style_selections], show_progress="full", queue=True) \
                 .then(fn=style_sorter.sort_styles, inputs=style_selections, outputs=style_selections, queue=False, show_progress="hidden") \
                 .then(lambda: None, js='()=>{refresh_style_localization();}')

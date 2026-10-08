@@ -8,6 +8,7 @@ import tempfile
 import modules.flags
 import modules.sdxl_styles
 
+from extras.wd14_tagger.models import DEFAULT_MODEL as DEFAULT_TAGGER_MODEL, MODELS as TAGGER_MODELS
 from modules.model_loader import load_file_from_url
 from modules.extra_utils import makedirs_with_log, get_files_from_folder, try_eval_env_var
 from modules.flags import OutputFormat, Performance, MetadataScheme
@@ -730,6 +731,13 @@ default_describe_content_type = get_config_item_or_set_default(
     default_value=[modules.flags.describe_type_photo],
     validator=lambda x: all(k in modules.flags.describe_types for k in x),
     expected_type=list
+)
+
+default_describe_tagger_model = get_config_item_or_set_default(
+    key='default_describe_tagger_model',
+    default_value=DEFAULT_TAGGER_MODEL,
+    validator=lambda x: x in TAGGER_MODELS,
+    expected_type=str
 )
 
 config_dict["default_loras"] = default_loras = default_loras[:default_max_lora_number] + [[True, 'None', 1.0] for _ in range(default_max_lora_number - len(default_loras))]
