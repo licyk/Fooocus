@@ -6,6 +6,7 @@ from extras.inpaint_mask import generate_mask_from_image, SAMOptions
 from modules.patch import PatchSettings, patch_settings, patch_all
 import modules.config
 from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, apply_deep_shrink
+from modules.model_free_inpaint import DEFAULTS as INPAINT_DEFAULTS, ModelFreeInpaintWorker, parameterized_enabled, prepare_mask
 
 patch_all()
 
@@ -99,6 +100,7 @@ class AsyncTask:
         self.inpaint_advanced_masking_checkbox = args.pop()
         self.invert_mask_checkbox = args.pop()
         self.inpaint_erode_or_dilate = args.pop()
+        self.inpaint_settings = {key: args.pop() for key in INPAINT_DEFAULTS}
         self.save_final_enhanced_image_only = args.pop() if not args_manager.args.disable_image_log else False
         self.save_metadata_to_images = args.pop() if not args_manager.args.disable_metadata else False
         self.metadata_scheme = MetadataScheme(
@@ -297,26 +299,33 @@ def worker():
                     positive_cond, negative_cond = core.apply_controlnet(
                         positive_cond, negative_cond,
                         pipeline.loaded_ControlNets[cn_path], cn_img, cn_weight, 0, cn_stop)
-        imgs = pipeline.process_diffusion(
-            positive_cond=positive_cond,
-            negative_cond=negative_cond,
-            steps=steps,
-            switch=switch,
-            width=width,
-            height=height,
-            image_seed=task['task_seed'],
-            callback=callback,
-            sampler_name=async_task.sampler_name,
-            scheduler_name=final_scheduler_name,
-            latent=initial_latent,
-            denoise=denoising_strength,
-            tiled=tiled,
-            cfg_scale=async_task.cfg_scale,
-            refiner_swap_method=async_task.refiner_swap_method,
-            disable_preview=async_task.disable_preview
-        )
+        model_free_task = inpaint_worker.current_task
+        if getattr(model_free_task, 'is_model_free', False):
+            initial_latent = model_free_task.prepare_latent(task['task_seed'])
+        inpaint_noop = getattr(model_free_task, 'is_model_free', False) and (model_free_task.empty or denoising_strength <= 0)
+        if inpaint_noop:
+            imgs = [model_free_task.image.copy()]
+        else:
+            imgs = pipeline.process_diffusion(
+                positive_cond=positive_cond,
+                negative_cond=negative_cond,
+                steps=steps,
+                switch=switch,
+                width=width,
+                height=height,
+                image_seed=task['task_seed'],
+                callback=callback,
+                sampler_name=async_task.sampler_name,
+                scheduler_name=final_scheduler_name,
+                latent=initial_latent,
+                denoise=denoising_strength,
+                tiled=tiled,
+                cfg_scale=async_task.cfg_scale,
+                refiner_swap_method=async_task.refiner_swap_method,
+                disable_preview=async_task.disable_preview
+            )
         del positive_cond, negative_cond  # Save memory
-        if inpaint_worker.current_task is not None:
+        if inpaint_worker.current_task is not None and not inpaint_noop:
             imgs = [inpaint_worker.current_task.post_process(x) for x in imgs]
         current_progress = int(base_progress + (100 - preparation_steps) / float(all_steps) * steps)
         if modules.config.default_black_out_nsfw or async_task.black_out_nsfw:
@@ -383,6 +392,12 @@ def worker():
 
             if async_task.deep_shrink['enabled']:
                 d.append(('UNet Deep Shrink', 'deep_shrink', json.dumps(async_task.deep_shrink)))
+
+            if inpaint_worker.current_task is not None:
+                settings = async_task.inpaint_settings.copy()
+                settings['backend'] = 'standard' if getattr(inpaint_worker.current_task, 'is_model_free', False) else 'fooocus'
+                d.append(('Inpaint settings', 'inpaint_settings', json.dumps(settings)))
+                d.append(('Inpaint Denoising Strength', 'inpaint_strength', inpaint_worker.current_task.denoising_strength))
 
             for li, (n, w) in enumerate(loras):
                 if n != 'None':
@@ -488,9 +503,41 @@ def worker():
     def apply_inpaint(async_task, initial_latent, inpaint_head_model_path, inpaint_image,
                       inpaint_mask, inpaint_parameterized, denoising_strength, inpaint_respective_field, switch,
                       inpaint_disable_initial_latent, current_progress, skip_apply_outpaint=False,
-                      advance_progress=False):
+                      advance_progress=False, width=None, height=None):
         if not skip_apply_outpaint:
             inpaint_image, inpaint_mask = apply_outpaint(async_task, inpaint_image, inpaint_mask)
+            if async_task.outpaint_selections:
+                denoising_strength = 1.0
+
+        if not inpaint_parameterized:
+            if width is None or height is None:
+                width, height = [int(v) for v in async_task.aspect_ratios_selection.replace('×', ' ').split(' ')[:2]]
+                _, _, width, height = apply_overrides(async_task, async_task.steps, height, width)
+            # VAE dimensions must be divisible by the model's spatial factor.
+            width, height = max(8, width // 8 * 8), max(8, height // 8 * 8)
+            inpaint_worker.current_task = ModelFreeInpaintWorker(
+                inpaint_image, inpaint_mask, width, height, async_task.inpaint_settings,
+                outpaint=not skip_apply_outpaint and bool(async_task.outpaint_selections))
+            inpaint_worker.current_task.denoising_strength = denoising_strength
+            if async_task.debugging_inpaint_preprocessor:
+                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), 100,
+                             async_task.black_out_nsfw, do_not_show_finished_images=True)
+                raise EarlyReturnException
+            progressbar(async_task, current_progress, 'VAE encoding ...')
+            pixels = core.numpy_to_pytorch(inpaint_worker.current_task.interested_fill)
+            candidate_vae, candidate_swap = pipeline.get_candidate_vae(
+                steps=async_task.steps, switch=switch, denoise=denoising_strength,
+                refiner_swap_method=async_task.refiner_swap_method)
+            latent_fill = core.encode_vae(vae=candidate_vae, pixels=pixels)['samples']
+            latent_swap = core.encode_vae(vae=candidate_swap, pixels=pixels)['samples'] if candidate_swap is not None else None
+            latent_model = pipeline.final_unet.model
+            if candidate_vae is pipeline.final_refiner_vae and candidate_vae is not pipeline.final_vae:
+                latent_model = pipeline.final_refiner_unet.model
+            swap_model = pipeline.final_refiner_unet.model if candidate_swap is not None else None
+            inpaint_worker.current_task.load_latent(latent_fill, latent_swap=latent_swap,
+                                                    latent_model=latent_model, swap_model=swap_model)
+            initial_latent = {'samples': latent_fill, 'noise_mask': inpaint_worker.current_task.latent_mask}
+            return denoising_strength, initial_latent, width, height, current_progress
 
         inpaint_worker.current_task = inpaint_worker.InpaintWorker(
             image=inpaint_image,
@@ -498,6 +545,7 @@ def worker():
             use_fill=denoising_strength > 0.99,
             k=inpaint_respective_field
         )
+        inpaint_worker.current_task.denoising_strength = denoising_strength
         if async_task.debugging_inpaint_preprocessor:
             yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), 100,
                          async_task.black_out_nsfw, do_not_show_finished_images=True)
@@ -890,22 +938,27 @@ def worker():
                     async_task.inpaint_mask_image_upload = resample_image(async_task.inpaint_mask_image_upload,
                                                                           width=W, height=H)
                     async_task.inpaint_mask_image_upload = np.mean(async_task.inpaint_mask_image_upload, axis=2)
-                    async_task.inpaint_mask_image_upload = (async_task.inpaint_mask_image_upload > 127).astype(
-                        np.uint8) * 255
+                    if inpaint_parameterized:
+                        async_task.inpaint_mask_image_upload = (async_task.inpaint_mask_image_upload > 127).astype(np.uint8) * 255
+                    else:
+                        async_task.inpaint_mask_image_upload = np.clip(async_task.inpaint_mask_image_upload, 0, 255).astype(np.uint8)
                     inpaint_mask = np.maximum(inpaint_mask, async_task.inpaint_mask_image_upload)
 
             if int(async_task.inpaint_erode_or_dilate) != 0:
                 inpaint_mask = erode_or_dilate(inpaint_mask, async_task.inpaint_erode_or_dilate)
 
-            if async_task.invert_mask_checkbox:
+            if not inpaint_parameterized:
+                inpaint_mask = prepare_mask(inpaint_mask, async_task.inpaint_settings,
+                                            invert=async_task.invert_mask_checkbox, apply_blur=False)
+            elif async_task.invert_mask_checkbox:
                 inpaint_mask = 255 - inpaint_mask
 
             inpaint_image = HWC3(inpaint_image)
             if isinstance(inpaint_image, np.ndarray) and isinstance(inpaint_mask, np.ndarray) \
-                    and (np.any(inpaint_mask > 127) or len(async_task.outpaint_selections) > 0):
-                progressbar(async_task, 1, 'Downloading upscale models ...')
-                modules.config.downloading_upscale_model()
+                    and (not inpaint_parameterized or np.any(inpaint_mask > 127) or len(async_task.outpaint_selections) > 0):
                 if inpaint_parameterized:
+                    progressbar(async_task, 1, 'Downloading upscale models ...')
+                    modules.config.downloading_upscale_model()
                     progressbar(async_task, 1, 'Downloading inpainter ...')
                     inpaint_head_model_path, inpaint_patch_model_path = modules.config.downloading_inpaint_models(
                         async_task.inpaint_engine)
@@ -981,7 +1034,7 @@ def worker():
                         use_synthetic_refiner, width, show_intermediate_results=True, persist_image=True):
         base_model_additional_loras = []
         inpaint_head_model_path = None
-        inpaint_parameterized = (inpaint_engine != 'None' and not pipeline.is_anima()
+        inpaint_parameterized = (parameterized_enabled(async_task.inpaint_settings, inpaint_engine) and not pipeline.is_anima()
                                  and pipeline.final_refiner_clip is None)
         initial_latent = None
 
@@ -1029,7 +1082,7 @@ def worker():
                 async_task, None, inpaint_head_model_path, img, mask,
                 inpaint_parameterized, inpaint_strength,
                 inpaint_respective_field, switch, inpaint_disable_initial_latent,
-                current_progress, True)
+                current_progress, True, width=width, height=height)
         imgs, img_paths, current_progress = process_task(all_steps, async_task, callback, controlnet_canny_path,
                                                          controlnet_cpds_path, current_task_id, denoising_strength,
                                                          final_scheduler_name, goals, initial_latent, steps, switch,
@@ -1137,7 +1190,7 @@ def worker():
         skip_prompt_processing = False
 
         inpaint_worker.current_task = None
-        inpaint_parameterized = async_task.inpaint_engine != 'None'
+        inpaint_parameterized = parameterized_enabled(async_task.inpaint_settings, async_task.inpaint_engine)
         inpaint_image = None
         inpaint_mask = None
         inpaint_head_model_path = None
@@ -1217,7 +1270,8 @@ def worker():
                                                                                                     switch,
                                                                                                     async_task.inpaint_disable_initial_latent,
                                                                                                     current_progress,
-                                                                                                    advance_progress=True)
+                                                                                                    advance_progress=True,
+                                                                                                    width=width, height=height)
             except EarlyReturnException:
                 return
 
@@ -1406,7 +1460,9 @@ def worker():
                 if int(enhance_inpaint_erode_or_dilate) != 0:
                     mask = erode_or_dilate(mask, enhance_inpaint_erode_or_dilate)
 
-                if enhance_mask_invert:
+                if not parameterized_enabled(async_task.inpaint_settings, enhance_inpaint_engine) or pipeline.is_anima() or pipeline.final_refiner_clip is not None:
+                    mask = prepare_mask(mask, async_task.inpaint_settings, invert=enhance_mask_invert, apply_blur=False)
+                elif enhance_mask_invert:
                     mask = 255 - mask
 
                 if async_task.debugging_enhance_masks_checkbox:

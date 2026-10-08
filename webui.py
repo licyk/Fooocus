@@ -29,6 +29,7 @@ from modules.auth import auth_enabled, check_auth
 from modules.util import is_json
 from modules.localization import load_localization, translate_choices
 from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, RESIZE_METHODS
+from modules.model_free_inpaint_ui import build_settings as build_inpaint_settings
 
 load_localization(args_manager.args.language)
 cloth_category_labels = {'full': 'Full body', 'upper': 'Upper body', 'lower': 'Lower body'}
@@ -277,6 +278,11 @@ with shared.gradio_root:
                                 inpaint_input_image = gr.ImageEditor(label='Image', sources=['upload'], type='numpy', image_mode='RGBA', height=500, brush=gr.Brush(colors=['#FFFFFF'], color_mode='fixed'), transforms=(), layers=False, elem_id='inpaint_canvas', show_label=False)
                                 inpaint_advanced_masking_checkbox = gr.Checkbox(label='Enable Advanced Masking Features', value=modules.config.default_inpaint_advanced_masking_checkbox)
                                 inpaint_mode = gr.Dropdown(choices=modules.flags.inpaint_options, value=modules.config.default_inpaint_method, label='Method')
+                                inpaint_settings_ctrls = build_inpaint_settings(modules.config.default_inpaint_backend)
+                                inpaint_strength = gr.Slider(label='Inpaint Denoising Strength',
+                                                             minimum=0.0, maximum=1.0, step=0.001, value=1.0,
+                                                             elem_id='inpaint_strength',
+                                                             info='Controls how much the masked content changes. Zero preserves the original image. Outpainting always uses 1.0.')
                                 inpaint_additional_prompt = gr.Textbox(placeholder="Describe what you want to inpaint.", elem_id='inpaint_additional_prompt', label='Inpaint Additional Prompt', visible='hidden',
                                                                       elem_classes=['fooocus-completion', 'completion-inpaint'])
                                 outpaint_selections = gr.CheckboxGroup(choices=['Left', 'Right', 'Top', 'Bottom'], value=[], label='Outpaint Direction')
@@ -284,7 +290,7 @@ with shared.gradio_root:
                                                                      label='Additional Prompt Quick List',
                                                                      components=[inpaint_additional_prompt],
                                                                      visible='hidden')
-                                gr.HTML('* Powered by Fooocus Inpaint Engine <a href="https://github.com/lllyasviel/Fooocus/discussions/414" target="_blank">\U0001F4D4 Documentation</a>')
+                                gr.Markdown('Standard inpaint is adapted from Forge Classic. Fooocus dedicated inpaint remains available through Inpaint implementation.')
                                 example_inpaint_prompts.click(lambda x: x[0], inputs=example_inpaint_prompts, outputs=inpaint_additional_prompt, show_progress="hidden", queue=False)
 
                             with gr.Column(visible=modules.config.default_inpaint_advanced_masking_checkbox) as inpaint_mask_generation_col:
@@ -870,11 +876,6 @@ with shared.gradio_root:
                                                      value=modules.config.default_inpaint_engine_version,
                                                      choices=flags.inpaint_engine_versions,
                                                      info='Version of Fooocus inpaint model. If set, use performance Quality or Speed (no performance LoRAs) for best results.')
-                        inpaint_strength = gr.Slider(label='Inpaint Denoising Strength',
-                                                     minimum=0.0, maximum=1.0, step=0.001, value=1.0,
-                                                     info='Same as the denoising strength in A1111 inpaint. '
-                                                          'Only used in inpaint, not used in outpaint. '
-                                                          '(Outpaint always use 1.0)')
                         inpaint_respective_field = gr.Slider(label='Inpaint Respective Field',
                                                              minimum=0.0, maximum=1.0, step=0.001, value=0.618,
                                                              info='The area to inpaint. '
@@ -952,7 +953,7 @@ with shared.gradio_root:
                              base_model, refiner_model, refiner_switch, sampler_name, scheduler_name, vae_name,
                              seed_random, image_seed, inpaint_engine, inpaint_engine_state,
                              inpaint_mode] + enhance_inpaint_mode_ctrls + [generate_button,
-                             load_parameter_button] + freeu_ctrls + deep_shrink_ctrls + lora_ctrls
+                             load_parameter_button] + freeu_ctrls + deep_shrink_ctrls + inpaint_settings_ctrls + [inpaint_strength] + lora_ctrls
 
         if not args_manager.args.disable_preset_selection:
             def preset_selection_change(preset, is_generating, inpaint_mode):
@@ -1010,7 +1011,7 @@ with shared.gradio_root:
                                  queue=False, show_progress="hidden") \
             .then(fn=lambda: None, js='refresh_grid_delayed', queue=False, show_progress="hidden")
 
-        inpaint_mode.change(inpaint_mode_change, inputs=[inpaint_mode, inpaint_engine_state], outputs=[
+        inpaint_mode.input(inpaint_mode_change, inputs=[inpaint_mode, inpaint_engine_state], outputs=[
             inpaint_additional_prompt, outpaint_selections, example_inpaint_prompts,
             inpaint_disable_initial_latent, inpaint_engine,
             inpaint_strength, inpaint_respective_field
@@ -1052,6 +1053,7 @@ with shared.gradio_root:
         ctrls += freeu_ctrls
         ctrls += deep_shrink_ctrls
         ctrls += inpaint_ctrls
+        ctrls += inpaint_settings_ctrls
 
         if not args_manager.args.disable_image_log:
             ctrls += [save_final_enhanced_image_only]

@@ -338,6 +338,11 @@ def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sa
                                                     callback=callback,
                                                     disable_pbar=disable_pbar, seed=seed, sigmas=sigmas)
 
+        import modules.inpaint_worker as inpaint_worker
+        inpaint_task = inpaint_worker.current_task
+        if getattr(inpaint_task, 'is_model_free', False):
+            output_model = refiner.model if refiner is not None and refiner_switch < steps else model.model
+            samples = inpaint_task.finish_sample(samples, output_model)
         out = latent.copy()
         out["samples"] = samples
     finally:

@@ -187,7 +187,15 @@ def sample_hacked(model, noise, positive, negative, cfg, device, sampler, sigmas
             # residual_noise_preview *= x0.std()
             callback(step, x0, x, total_steps)
 
-    samples = sampler.sample(model_wrap, sigmas, extra_args, callback_wrap, noise, latent_image, denoise_mask, disable_pbar)
+    sampling_model = model_wrap
+    import modules.inpaint_worker as inpaint_worker
+    if getattr(inpaint_worker.current_task, 'is_model_free', False) and isinstance(sampler, (ldm_patched.modules.samplers.UNIPC, ldm_patched.modules.samplers.UNIPCBH2)):
+        from modules.model_free_inpaint import ModelFreeDenoiser
+        sampling_model = ModelFreeDenoiser(inpaint_worker.current_task, model_wrap, noise)
+        # The adapter performs both input preservation and output blending;
+        # disable UniPC's additional hard-mask composition.
+        denoise_mask = None
+    samples = sampler.sample(sampling_model, sigmas, extra_args, callback_wrap, noise, latent_image, denoise_mask, disable_pbar)
     output_model = model_wrap.inner_model if isinstance(model, AnimaModel) else model
     return output_model.process_latent_out(samples.to(torch.float32))
 

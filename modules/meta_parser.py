@@ -13,6 +13,7 @@ from modules.flags import MetadataScheme, Performance, Steps
 from modules.flags import SAMPLERS, CIVITAI_NO_KARRAS
 from modules.hash_cache import sha256_from_cache
 from modules.deep_shrink import DEFAULTS as DEEP_SHRINK_DEFAULTS, RESIZE_METHODS
+from modules.model_free_inpaint import read_settings as read_inpaint_settings
 from modules.util import quote, unquote, extract_styles_from_prompt, is_json, get_file_from_folder_list
 
 re_param_code = r'\s*(\w[\w \-/]+):\s*("(?:\\.|[^\\"])+"|[^,]*)(?:,|$)'
@@ -61,6 +62,8 @@ def load_parameter_button_click(raw_metadata: dict | str, is_generating: bool, i
 
     get_freeu('freeu', 'FreeU', loaded_parameter_dict, results)
     get_deep_shrink(loaded_parameter_dict, results)
+    results.extend(read_inpaint_settings(loaded_parameter_dict.get('inpaint_settings', loaded_parameter_dict.get('Inpaint settings'))).values())
+    get_number('inpaint_strength', 'Inpaint Denoising Strength', loaded_parameter_dict, results)
 
     # prevent performance LoRAs to be added twice, by performance and by lora
     performance_filename = None
@@ -378,6 +381,8 @@ class A1111MetadataParser(MetadataParser):
         'overwrite_switch': 'Overwrite Switch',
         'freeu': 'FreeU',
         'deep_shrink': 'UNet Deep Shrink',
+        'inpaint_settings': 'Inpaint settings',
+        'inpaint_strength': 'Inpaint Denoising Strength',
         'base_model': 'Model',
         'base_model_hash': 'Model hash',
         'refiner_model': 'Refiner',
@@ -520,7 +525,7 @@ class A1111MetadataParser(MetadataParser):
                 self.fooocus_to_a1111['refiner_model_hash']: self.refiner_model_hash
             }
 
-        for key in ['adaptive_cfg', 'clip_skip', 'overwrite_switch', 'refiner_swap_method', 'freeu', 'deep_shrink']:
+        for key in ['adaptive_cfg', 'clip_skip', 'overwrite_switch', 'refiner_swap_method', 'freeu', 'deep_shrink', 'inpaint_settings', 'inpaint_strength']:
             if key in data:
                 generation_params[self.fooocus_to_a1111[key]] = data[key]
 

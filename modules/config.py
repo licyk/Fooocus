@@ -494,6 +494,12 @@ default_aspect_ratio = get_config_item_or_set_default(
     validator=lambda x: x in available_aspect_ratios,
     expected_type=str
 )
+default_inpaint_backend = get_config_item_or_set_default(
+    key='default_inpaint_backend',
+    default_value='standard',
+    validator=lambda x: x in ['standard', 'fooocus'],
+    expected_type=str
+)
 default_inpaint_engine_version = get_config_item_or_set_default(
     key='default_inpaint_engine_version',
     default_value='v2.6',

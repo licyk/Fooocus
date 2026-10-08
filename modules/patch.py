@@ -298,6 +298,9 @@ def sdxl_encode_adm_patched(self, **kwargs):
 
 
 def patched_KSamplerX0Inpaint_forward(self, x, sigma, uncond, cond, cond_scale, denoise_mask, model_options={}, seed=None):
+    if getattr(inpaint_worker.current_task, 'is_model_free', False):
+        return inpaint_worker.current_task.sample(self, x, sigma, cond=cond, uncond=uncond,
+                                                 cond_scale=cond_scale, model_options=model_options, seed=seed)
     flow_mask = (self.inner_model.inner_model.model_type == ldm_patched.modules.model_base.ModelType.FLOW
                  and denoise_mask is not None)
     if inpaint_worker.current_task is not None:
