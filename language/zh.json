@@ -620,6 +620,7 @@
     "Positive value will make white area in the mask larger, negative value will make white area smaller. (default is 0, processed before SAM)": "该值为正值时会使遮罩中的白色区域变大，为负值时会使白色区域变小。（默认值为 0，并且在使用 SAM 之前处理）",
     "Apply Styles": "应用风格预设",
     "Prompt Assistance": "提示词辅助",
+    "Tag Complete": "Tag Complete（提示词补全）",
     "Base Model (SDXL / Anima)": "基础模型（SDXL / Anima）",
     "Refiner (SDXL / SD 1.5 / Anima)": "精修模型（SDXL / SD 1.5 / Anima）",
     "Anima uses a separate Qwen3 text encoder and Qwen-Image VAE. Select the anima preset for its default settings.": "Anima 使用独立的 Qwen3 文本编码器和 Qwen-Image VAE。选择 anima 预设可加载其默认设置。",

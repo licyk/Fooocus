@@ -654,8 +654,9 @@ with shared.gradio_root:
                 shared.gradio_root.load(update_history_link, outputs=history_link, queue=False, show_progress="hidden")
 
             with gr.Tab(label='Prompt Assistance', render_children=True):
+                with gr.Accordion(label='Tag Complete', open=False, elem_id='tagcomplete_settings'):
+                    build_completion_settings()
                 build_prompt_editor_settings()
-                build_completion_settings()
 
             with gr.Tab(label='Styles', elem_classes=['style_selections_tab'], render_children=True):
                 style_sorter.try_load_sorted_styles(
