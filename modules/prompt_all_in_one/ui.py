@@ -33,8 +33,8 @@ def build_settings():
         "Prompt All-in-One", open=False, elem_id="prompt_all_in_one_settings"
     ):
         gr.Markdown(
-            "Full upstream Prompt All-in-One editor. Language, translation, formatting, mouse shortcuts, blacklist and themes are configured in its original toolbar and dialogs. "
-            "Preferences apply to this browser. The original prompts remain the generation inputs. "
+            "Language, translation, formatting, mouse shortcuts, blacklist and themes are configured in the editor toolbar and dialogs. "
+            "Preferences apply to this browser. "
             "External services require configuration in the editor."
         )
         status = gr.Markdown(

@@ -292,7 +292,6 @@ with shared.gradio_root:
                                                                      label='Additional Prompt Quick List',
                                                                      components=[inpaint_additional_prompt],
                                                                      visible='hidden')
-                                gr.Markdown('Standard inpaint is adapted from Forge Classic. Fooocus dedicated inpaint remains available through Inpaint implementation.')
                                 example_inpaint_prompts.click(lambda x: x[0], inputs=example_inpaint_prompts, outputs=inpaint_additional_prompt, show_progress="hidden", queue=False)
 
                             with gr.Column(visible=modules.config.default_inpaint_advanced_masking_checkbox) as inpaint_mask_generation_col:
