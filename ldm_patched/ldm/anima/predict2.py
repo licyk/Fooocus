@@ -16,6 +16,21 @@ from .operations import apply_rope, pad_to_patch_size
 from .position_embedding import LearnablePosEmbAxis, VideoRopePosition3DEmb
 
 
+def apply_spatial_grid_patches(hidden, patches, options, output_shape=None):
+    """Apply image resize patches per frame without resizing channels or time."""
+    if not patches:
+        return hidden
+    grid = rearrange(hidden, "b t h w d -> (b t) d h w")
+    for patch in patches:
+        if output_shape is None:
+            grid = patch(grid, options)
+        else:
+            # Deep Shrink's output patch only reads the reference shape.
+            reference = grid[:, :, :1, :1].expand(-1, -1, *output_shape)
+            grid, _ = patch(grid, reference, options)
+    return rearrange(grid, "(b t) d h w -> b t h w d", b=hidden.shape[0])
+
+
 class GPT2FeedForward(nn.Module):
     def __init__(
         self, d_model: int, d_ff: int, device=None, dtype=None, operations=None
@@ -886,6 +901,15 @@ class MiniTrainDIT(nn.Module):
             )
         transformer_options = kwargs.get("transformer_options", {})
         patches = transformer_options.get("patches", {})
+        dit_patch_names = (
+            "dit_input_block_patch",
+            "dit_input_block_patch_after_skip",
+            "dit_output_block_patch",
+        )
+        has_grid_patches = any(name in patches for name in dit_patch_names)
+        position_shape = x_B_T_H_W_D.shape[1:4]
+        if has_grid_patches:
+            transformer_options = transformer_options.copy()
         if "post_input" in patches:
             transformer_options = transformer_options.copy()
             transformer_options["model_patch_data"] = {}
@@ -907,10 +931,61 @@ class MiniTrainDIT(nn.Module):
         }
         if x_B_T_H_W_D.dtype == torch.float16:
             x_B_T_H_W_D = x_B_T_H_W_D.float()
+        output_grid_shape = x_B_T_H_W_D.shape[2:4]
         for block_index, block in enumerate(self.blocks):
             transformer_options["block_index"] = block_index
+            if has_grid_patches:
+                transformer_options["block"] = ("input", block_index)
+                x_B_T_H_W_D = apply_spatial_grid_patches(
+                    x_B_T_H_W_D,
+                    patches.get("dit_input_block_patch", []),
+                    transformer_options,
+                )
+                if x_B_T_H_W_D.shape[1:4] != position_shape:
+                    # RoPE token count and learned positions must match the
+                    # resized grid before the next attention operation.
+                    block_kwargs["rope_emb_L_1_1_D"] = (
+                        self.pos_embedder(
+                            x_B_T_H_W_D, fps=fps, device=x_B_T_H_W_D.device
+                        )
+                        .unsqueeze(1)
+                        .unsqueeze(0)
+                    )
+                    if extra_pos_emb_B_T_H_W_D_or_T_H_W_B_D is not None:
+                        # Resize learned positions across the original image
+                        # extent; expanding must not exceed their fixed tables.
+                        position_grid = rearrange(
+                            extra_pos_emb_B_T_H_W_D_or_T_H_W_B_D,
+                            "b t h w d -> (b t) d h w",
+                        )
+                        position_grid = torch.nn.functional.interpolate(
+                            position_grid,
+                            size=x_B_T_H_W_D.shape[2:4],
+                            mode="bilinear",
+                            align_corners=False,
+                        )
+                        block_kwargs["extra_per_block_pos_emb"] = rearrange(
+                            position_grid,
+                            "(b t) d h w -> b t h w d",
+                            b=x_B_T_H_W_D.shape[0],
+                        )
+                    position_shape = x_B_T_H_W_D.shape[1:4]
             x_B_T_H_W_D = block(
                 x_B_T_H_W_D, t_embedding_B_T_D, crossattn_emb, **block_kwargs
+            )
+            if has_grid_patches:
+                x_B_T_H_W_D = apply_spatial_grid_patches(
+                    x_B_T_H_W_D,
+                    patches.get("dit_input_block_patch_after_skip", []),
+                    transformer_options,
+                )
+        if has_grid_patches:
+            transformer_options["block"] = ("output", 0)
+            x_B_T_H_W_D = apply_spatial_grid_patches(
+                x_B_T_H_W_D,
+                patches.get("dit_output_block_patch", []),
+                transformer_options,
+                output_shape=output_grid_shape,
             )
         x_B_T_H_W_O = self.final_layer(
             x_B_T_H_W_D.to(crossattn_emb.dtype),

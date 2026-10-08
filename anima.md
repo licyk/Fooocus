@@ -14,7 +14,7 @@ Model files from [CircleStone Labs](https://huggingface.co/circlestone-labs/Anim
 
 The preset downloads its base checkpoint through the existing model downloader. Selecting Anima downloads its missing default text encoder and VAE when the model is first loaded. You can also install all three files manually. Custom locations can be configured with `path_checkpoints`, `path_text_encoders`, `path_vae`, `anima_text_encoder` and `anima_vae` in `config.txt`; the existing VAE dropdown overrides `anima_vae` for a generation.
 
-Supported paths include text-to-image, negative prompts, weighted prompts, styles, wildcards, compatible Anima LoRAs, Vary, diffusion upscaling, and standard mask-based inpaint/outpaint. Anima uses the full Qwen3 output and its own text adapter; CLIP Skip and SDXL sampling sharpness do not apply. Prompt weights are applied after the adapter, matching ComfyUI.
+Supported paths include text-to-image, negative prompts, weighted prompts, styles, wildcards, compatible Anima LoRAs, Vary, diffusion upscaling, [UNet Deep Shrink](deep-shrink.md), and standard mask-based inpaint/outpaint. Anima uses the full Qwen3 output and its own text adapter; CLIP Skip and SDXL sampling sharpness do not apply. Prompt weights are applied after the adapter, matching ComfyUI.
 
 Select another Anima checkpoint in **Refiner (SDXL / SD 1.5 / Anima)** to refine an Anima base model. **Refiner Switch** controls the number of base steps before refinement. Joint switching keeps the same 16-channel noisy latent and uses the refiner's own text adapter. Separate switching resumes the existing flow latent without adding or scaling its noise again. VAE switching decodes the base image and re-encodes it for the refiner.
 

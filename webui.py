@@ -894,10 +894,11 @@ with shared.gradio_root:
                     with gr.Tab(label='UNet Deep Shrink', render_children=True, elem_id='deep_shrink_settings'):
                         deep_shrink_enabled = gr.Checkbox(label='Enable UNet Deep Shrink', value=DEEP_SHRINK_DEFAULTS['enabled'],
                                                           elem_id='deep_shrink_enabled',
-                                                          info='Temporarily shrinks UNet feature maps during denoising. Supports SDXL and SD 1.x UNet models; Anima is skipped.')
+                                                          info='Temporarily shrinks denoiser feature maps during denoising. Supports SDXL, SD 1.x and Anima models.')
                         with gr.Column(visible=False, elem_id='deep_shrink_parameters') as deep_shrink_parameters:
                             deep_shrink_block = gr.Slider(label='UNet input block number', minimum=1, maximum=32, step=1,
-                                                         value=DEEP_SHRINK_DEFAULTS['block_number'], elem_id='deep_shrink_block_number')
+                                                         value=DEEP_SHRINK_DEFAULTS['block_number'], elem_id='deep_shrink_block_number',
+                                                         info='For Anima, this is the Transformer block index, starting from 0. Out-of-range blocks have no effect.')
                             deep_shrink_factor = gr.Slider(label='UNet downscale factor', minimum=0.1, maximum=9.0, step=0.001,
                                                           value=DEEP_SHRINK_DEFAULTS['downscale_factor'], elem_id='deep_shrink_downscale_factor')
                             deep_shrink_start = gr.Slider(label='Deep Shrink start progress', minimum=0.0, maximum=1.0, step=0.001,
@@ -905,7 +906,8 @@ with shared.gradio_root:
                             deep_shrink_end = gr.Slider(label='Deep Shrink end progress', minimum=0.0, maximum=1.0, step=0.001,
                                                        value=DEEP_SHRINK_DEFAULTS['end_percent'], elem_id='deep_shrink_end_percent')
                             deep_shrink_after_skip = gr.Checkbox(label='Downscale after skip connection',
-                                                                value=DEEP_SHRINK_DEFAULTS['downscale_after_skip'], elem_id='deep_shrink_after_skip')
+                                                                value=DEEP_SHRINK_DEFAULTS['downscale_after_skip'], elem_id='deep_shrink_after_skip',
+                                                                info='For Anima, enabled shrinks after the selected Transformer block; disabled shrinks before it.')
                             deep_shrink_downscale_method = gr.Dropdown(label='UNet downscale method',
                                                                      choices=translate_choices(RESIZE_METHODS), value=DEEP_SHRINK_DEFAULTS['downscale_method'],
                                                                      elem_id='deep_shrink_downscale_method')

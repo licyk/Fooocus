@@ -1,6 +1,8 @@
 # Adapted from ComfyUI comfy_extras/nodes_model_downscale.py (Kohya Deep Shrink).
 
+import torch
 import ldm_patched.modules.utils
+from ldm_patched.ldm.anima.predict2 import MiniTrainDIT
 
 class PatchModelAddDownscale:
     upscale_methods = ["bicubic", "nearest-exact", "bilinear", "area", "bislerp"]
@@ -29,8 +31,12 @@ class PatchModelAddDownscale:
 
         def input_block_patch(h, transformer_options):
             if transformer_options["block"][1] == block_number:
-                sigma = transformer_options["sigmas"][0].item()
-                if sigma <= sigma_start and sigma >= sigma_end:
+                sigmas = transformer_options["sigmas"]
+                sigma = sigmas[0].item()
+                # Compare at the sampler's precision so flow schedule boundary
+                # steps are included despite Python float -> tensor rounding.
+                start, end = torch.as_tensor((sigma_start, sigma_end), dtype=sigmas.dtype, device="cpu").tolist()
+                if sigma <= start and sigma >= end:
                     h = ldm_patched.modules.utils.common_upscale(h, max(1, round(h.shape[-1] / downscale_factor)), max(1, round(h.shape[-2] / downscale_factor)), downscale_method, "disabled")
             return h
 
@@ -40,11 +46,18 @@ class PatchModelAddDownscale:
             return h, hsp
 
         m = model.clone()
-        if downscale_after_skip:
-            m.set_model_input_block_patch_after_skip(input_block_patch)
+        if isinstance(model.model.diffusion_model, MiniTrainDIT):
+            # DiT blocks have no UNet skip stack. Run before/after the selected
+            # transformer block, then restore the spatial grid before output.
+            name = "dit_input_block_patch_after_skip" if downscale_after_skip else "dit_input_block_patch"
+            m.set_model_patch(input_block_patch, name)
+            m.set_model_patch(output_block_patch, "dit_output_block_patch")
         else:
-            m.set_model_input_block_patch(input_block_patch)
-        m.set_model_output_block_patch(output_block_patch)
+            if downscale_after_skip:
+                m.set_model_input_block_patch_after_skip(input_block_patch)
+            else:
+                m.set_model_input_block_patch(input_block_patch)
+            m.set_model_output_block_patch(output_block_patch)
         return (m, )
 
 NODE_CLASS_MAPPINGS = {

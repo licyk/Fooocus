@@ -1,6 +1,7 @@
 """Fooocus integration for ComfyUI's Kohya Deep Shrink UNet patch."""
 
 from ldm_patched.contrib.external_model_downscale import PatchModelAddDownscale
+from ldm_patched.ldm.anima.predict2 import MiniTrainDIT
 from ldm_patched.ldm.modules.diffusionmodules.openaimodel import UNetModel
 
 DEFAULTS = {
@@ -19,8 +20,8 @@ RESIZE_METHODS = PatchModelAddDownscale.upscale_methods
 def apply_deep_shrink(model, enabled=False, **settings):
     if not enabled or model is None:
         return model
-    if not isinstance(model.model.diffusion_model, UNetModel):
-        print("[Deep Shrink] Skipped: this model does not use a UNet.")
+    if not isinstance(model.model.diffusion_model, (UNetModel, MiniTrainDIT)):
+        print("[Deep Shrink] Skipped: unsupported denoiser architecture.")
         return model
     (patched,) = PatchModelAddDownscale().patch(model, **settings)
     return patched
