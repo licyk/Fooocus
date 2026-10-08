@@ -20,6 +20,8 @@ Prompt All-in-One 默认启用，可在 **Advanced → Prompt Assistance → Pro
 
 默认 **Local dictionary / 本地词库** 使用本地分类词库；TagComplete CSV 翻译增强仍通过原版设置弹窗选择。原版免费聚合服务、签名 API 服务、MBart50 均保留在原接口列表，另保留 LibreTranslate。免费服务会访问对应网站，可能需要可选依赖且受服务端可用性限制。
 
+TagComplete 本地翻译读取与提示词补全相同的数据目录：默认 `tags/`，可通过 `config.txt` 中的 `path_tagcomplete` 修改。弹窗显示当前目录和 CSV 文件名，点击刷新会重新扫描新增或删除的文件。请选择 UTF-8 的两列翻译文件（`tag,translation`）；JSON 词库不会出现在此列表中。选择保存后会保留当前文件，不启用选项可关闭 CSV 翻译增强。
+
 在原版翻译设置弹窗配置接口并测试，API 密钥使用密码输入；凭证按登录用户保存在服务器，不返回浏览器，空凭证保留已保存值。智能提示词保留原版 API 配置、可编辑预设、图片描述、生成结果与“使用”流程，查看生成结果后才能写入提示词。
 
 MBart50 使用指定的已有本地模型目录，主动初始化或翻译时才在 CPU 加载，不自动下载权重。可选翻译 SDK 只在选中并调用相关服务时使用；缺失依赖显示原版依赖弹窗和安装命令，“安装”按钮仅安装列表中允许的可选包，不在启动时自动安装。源码里的免费聚合服务后端来自 UlionTse/translators，保留 GPL-3.0 声明及 [许可](modules/prompt_all_in_one/providers/LICENSE.translators)。

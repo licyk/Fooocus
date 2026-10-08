@@ -103,10 +103,11 @@
                                 </div>
                             </div>
                             <div v-html="getLang('tagcomplete_translate_desc')"></div>
+                            <p v-if="tagCompleteDirectory"><code>{{ tagCompleteDirectory }}</code></p>
                             <div class="common-red" v-html="getLang('tagcomplete_translate_desc2')"></div>
                             <div class="line-row">
                                 <select v-model="tagCompleteFileKey" @change="tagCompleteResults = []">
-                                    <option v-for="item in tagCompleteFiles" :value="item.key">{{ item.name }}</option>
+                                    <option v-for="item in tagCompleteFiles" :key="item.key" :value="item.key">{{ item.name }}</option>
                                 </select>
                                 <div class="refresh-btn hover-scale-120" v-tooltip="getLang('refresh')" @click="refreshCSVs">
                                     <icon-svg v-if="tagCompleteFilesLoading" name="loading"/>
@@ -159,6 +160,7 @@ export default {
             clearSavedKey: false,
             apiKey: '',
             tagCompleteFiles: [],
+            tagCompleteDirectory: '',
             tagCompleteFilesLoading: false,
             tagCompleteFileKey: '',
             tagCompleteResults: [],
@@ -274,16 +276,20 @@ Github: {{name}}`
             this.tagCompleteFiles = []
             return this.gradioAPI.getCSVs().then(res => {
                 this.tagCompleteFilesLoading = false
-                if (!res || res.length <= 0) return
+                this.tagCompleteDirectory = res.directory
                 this.tagCompleteFiles.push({
                     key: '',
                     name: this.getLang('not_enable'),
                 })
-                for (const item of res) {
+                for (const item of res.csvs) {
                     this.tagCompleteFiles.push({
                         key: item.key,
-                        name: item.key,
+                        name: item.name,
                     })
+                }
+                if (!this.tagCompleteFiles.some(item => item.key === this.tagCompleteFileKey)) {
+                    this.tagCompleteFileKey = ''
+                    this.tagCompleteResults = []
                 }
             }).catch(err => {
                 this.tagCompleteFilesLoading = false

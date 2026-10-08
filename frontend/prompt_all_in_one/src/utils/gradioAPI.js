@@ -230,7 +230,7 @@ export default class GradioAPI {
     }
 
     async getCSVs() {
-        return (await this.api.get("/get_csvs")).data.csvs
+        return (await this.api.get("/get_csvs")).data
     }
 
     async getCSV(key) {

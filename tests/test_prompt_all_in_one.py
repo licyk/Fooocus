@@ -573,6 +573,91 @@ class TestUpstreamPromptEditor(unittest.TestCase):
                 ["cat"],
             )
 
+    def test_csv_catalog_uses_completion_directory_names_and_fresh_files(self):
+        from modules.tagcomplete.catalog import Catalog
+
+        directory = self.store.path.parent / "custom-tags"
+        directory.mkdir()
+        catalog = Catalog(directory, [], directory, directory, [])
+        with (
+            patch(
+                "modules.tagcomplete.api.services", return_value=(None, catalog, None)
+            ),
+            patch("modules.prompt_all_in_one.upstream_api.ROOT", directory.parent),
+        ):
+            self.assertEqual(
+                self.client.get(self.prefix + "/get_csvs").status_code, 401
+            )
+            self.assertEqual(
+                self.get("get_csvs"), {"directory": "custom-tags", "csvs": []}
+            )
+            file = directory / "中文翻译.csv"
+            file.write_text(
+                '\ufeff1girl,女孩\nrobot_dog,"机器狗,机械狗"\n', encoding="utf-8"
+            )
+            (directory / "chants.json").write_text("[]", encoding="utf-8")
+            listing = self.get("get_csvs")
+            self.assertEqual(len(listing["csvs"]), 1)
+            entry = listing["csvs"][0]
+            self.assertEqual(entry["name"], file.name)
+            self.assertNotEqual(entry["key"], entry["name"])
+            response = self.client.get(
+                self.prefix + "/get_csv",
+                params={"key": entry["key"]},
+                headers=self.alice,
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.text, '1girl,女孩\nrobot_dog,"机器狗,机械狗"\n')
+            self.assertEqual(self.get("get_csvs")["csvs"], listing["csvs"])
+            (directory / "new.csv").write_text("cat,猫\n", encoding="utf-8")
+            self.assertEqual(len(self.get("get_csvs")["csvs"]), 2)
+            file.unlink()
+            self.assertEqual(
+                self.client.get(
+                    self.prefix + "/get_csv",
+                    params={"key": entry["key"]},
+                    headers=self.alice,
+                ).status_code,
+                404,
+            )
+            self.assertEqual(
+                [item["name"] for item in self.get("get_csvs")["csvs"]], ["new.csv"]
+            )
+
+    def test_csv_download_rejects_json_unknown_keys_and_symlink_escape(self):
+        from modules.tagcomplete.catalog import Catalog
+
+        directory = self.store.path.parent / "tags"
+        directory.mkdir()
+        file = directory / "translation.csv"
+        file.write_text("cat,猫\n", encoding="utf-8")
+        (directory / "chants.json").write_text("[]", encoding="utf-8")
+        catalog = Catalog(directory, [], directory, directory, [])
+        keys = {item["name"]: item["id"] for item in catalog.get()["datasets"]}
+        outside = directory.parent / "private.csv"
+        outside.write_text("private", encoding="utf-8")
+        file.unlink()
+        file.symlink_to(outside)
+        with patch(
+            "modules.tagcomplete.api.services", return_value=(None, catalog, None)
+        ):
+            self.assertEqual(self.get("get_csvs")["directory"], directory.as_posix())
+            for key in (
+                keys["chants.json"],
+                keys["translation.csv"],
+                "missing",
+                str(outside),
+            ):
+                with self.subTest(key=key):
+                    self.assertEqual(
+                        self.client.get(
+                            self.prefix + "/get_csv",
+                            params={"key": key},
+                            headers=self.alice,
+                        ).status_code,
+                        404,
+                    )
+
     def test_history_limit_and_disabled_recording(self):
         for index in range(12):
             self.post("push_history", type="negative", prompt=str(index), limit=10)

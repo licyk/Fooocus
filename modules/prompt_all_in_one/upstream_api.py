@@ -499,10 +499,15 @@ def create_router(settings, store):
         from modules.tagcomplete.api import services as completion_services
 
         _, catalog, _ = completion_services()
+        directory = catalog.tags.resolve()
+        if directory.is_relative_to(ROOT):
+            directory = directory.relative_to(ROOT)
         return {
+            "directory": directory.as_posix(),
             "csvs": [
                 {"key": entry["id"], "name": entry["name"]}
-                for entry in catalog.get()["datasets"]
+                for entry in catalog.refresh()["datasets"]
+                if Path(entry["name"]).suffix.lower() == ".csv"
             ]
         }
 
@@ -513,9 +518,12 @@ def create_router(settings, store):
         _, catalog, _ = completion_services()
         try:
             file = catalog.asset(key, {"dataset"})
-        except (KeyError, ValueError):
+            if file.suffix.lower() != ".csv":
+                raise FileNotFoundError(key)
+            content = file.read_text(encoding="utf-8-sig")
+        except (KeyError, ValueError, FileNotFoundError):
             raise HTTPException(404, "CSV not found") from None
-        return Response(file.read_text(encoding="utf-8-sig"), media_type="text/csv")
+        return Response(content, media_type="text/csv")
 
     @router.get("/get_extension_css_list")
     def extension_styles(user: User):
