@@ -45,12 +45,7 @@ if args.directml is not None:
     # torch_directml.disable_tiled_resources(True)
     lowvram_available = False #TODO: need to find a way to get free memory in directml before this can be enabled by default.
 
-try:
-    import intel_extension_for_pytorch as ipex
-    if torch.xpu.is_available():
-        xpu_available = True
-except:
-    pass
+xpu_available = torch.xpu.is_available()
 
 try:
     if torch.backends.mps.is_available():
@@ -321,7 +316,7 @@ class LoadedModel:
 
             self.model_accelerated = True
 
-        if is_intel_xpu() and not args.disable_ipex_hijack:
+        if is_intel_xpu() and not args.disable_ipex_hijack and hasattr(torch.xpu, "optimize"):
             self.real_model = torch.xpu.optimize(self.real_model.eval(), inplace=True, auto_kernel_selection=True, graph_mode=True)
 
         return self.real_model

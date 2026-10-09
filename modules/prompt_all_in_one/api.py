@@ -107,15 +107,17 @@ class TokenRequest(StrictModel):
 def services():
     from modules import config
 
-    directory = Path(config.config_path).resolve().parent
-    return SettingsStore(directory / "prompt_all_in_one_settings.json"), Store(
-        directory / "userdata" / "prompt_all_in_one" / "editor.sqlite3"
+    directory = (
+        Path(config.config_path).resolve().parent / "userdata" / "prompt_all_in_one"
+    )
+    return SettingsStore(directory / "settings.json"), Store(
+        directory / "editor.sqlite3"
     )
 
 
 def private_paths():
-    settings, store = services()
-    return [str(settings.path), str(store.path.parent)]
+    _, store = services()
+    return [str(store.path.parent.parent)]
 
 
 @lru_cache(maxsize=12)

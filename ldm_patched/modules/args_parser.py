@@ -1,6 +1,8 @@
 import argparse
 import enum
+
 import ldm_patched.modules.options
+from modules.environment.config import TORCH_BACKEND_CHOICES
 
 class EnumAction(argparse.Action):
     """
@@ -32,6 +34,15 @@ class EnumAction(argparse.Action):
 
 
 parser = argparse.ArgumentParser()
+
+environment = parser.add_argument_group("运行环境")
+environment.add_argument("--skip-check", action="store_true", help="跳过运行环境的依赖检查。")
+environment.add_argument(
+    "--torch-backend", choices=TORCH_BACKEND_CHOICES, default="auto",
+    help="安装 PyTorch 时使用的类型，auto 根据显卡和驱动自动选择。"
+)
+environment.add_argument("--reinstall-torch", action="store_true", help="重新安装 PyTorch 和 torchvision。")
+environment.add_argument("--index-url", default=None, help="安装项目依赖时使用的 PyPI 镜像地址，不影响 PyTorch。")
 
 parser.add_argument("--listen", type=str, default="127.0.0.1", metavar="IP", nargs="?", const="0.0.0.0")
 parser.add_argument("--port", type=int, default=8188)

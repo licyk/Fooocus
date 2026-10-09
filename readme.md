@@ -37,6 +37,12 @@ Anima 模型文件：生成模型放入 `models/checkpoints/`，`qwen_3_06b_base
 
 普通重绘可在“重绘实现方式”切回 Fooocus 专用模型，或设置 `"default_inpaint_backend": "fooocus"`；涉及 Anima 时使用普通重绘。重绘和深度收缩参数均支持图片元数据保存与回填。
 
+### 运行环境
+
+启动时自动检查 PyTorch、torchvision 的可用性及项目依赖版本，未满足要求时安装并复查；PyTorch 最低版本为 2.8。自动识别 NVIDIA（按驱动选择 CUDA 13.0 / 12.8 / 12.6）、AMD（ROCm）、Intel Arc / Core Ultra（XPU），macOS 使用 MPS，其余使用 CPU。已有可用环境不会自动升级；显卡和驱动仍需满足对应后端要求。
+
+可使用 `--torch-backend auto|cuda|cuda128|cuda126|rocm|xpu|mps|cpu` 指定后端，`--reinstall-torch` 重装配套的 PyTorch / torchvision，`--index-url <地址>` 指定项目依赖镜像，`--skip-check` 跳过检查。`--always-cpu` 在自动选择时使用 CPU；重装会清理旧 torch、torchvision、torchaudio 和 xformers。`TORCH_INDEX_URL` 可覆盖 PyTorch 索引，`REQS_FILE` 可指定依赖文件。
+
 ### Prompt Assistance
 
 在 **高级设置 → 提示词辅助** 中分别展开 Tag Complete 和 Prompt All-in-One，两者均默认启用，可独立关闭，并设置正向、负向、重绘和增强输入框的启用范围。
@@ -46,7 +52,18 @@ Anima 模型文件：生成模型放入 `models/checkpoints/`，`qwen_3_06b_base
 
 默认数据目录是 `tags/`，标签库为 `tag_pp.csv`，翻译库为 `tag_pp_zh.csv`；可通过 `path_tagcomplete` 修改目录，放入文件后刷新。标签 CSV 格式为 `tag,category,count,aliases[,translation]`，翻译为 `tag,translation`，均使用 UTF-8、无表头；旧三列翻译需开启旧格式选项。Chants 使用 JSON，模型和通配符读取 Fooocus 配置的目录。
 
-Tag Complete 偏好保存在当前浏览器；“保存为默认值”更新服务器默认值，“加载服务器默认值 / 恢复内置默认值”应用到当前浏览器。已有保存选择优先。Prompt All-in-One 编辑器内部偏好、历史和收藏按登录用户保存在 `userdata/prompt_all_in_one/editor.sqlite3`。
+Tag Complete 偏好保存在当前浏览器；“保存为默认值”更新服务器默认值，“加载服务器默认值 / 恢复内置默认值”应用到当前浏览器。已有保存选择优先。两者的服务器配置统一放在主配置所在目录的 `userdata/` 中：
+
+```text
+userdata/
+├── tagcomplete/
+│   └── settings.json          # 提示词补全服务器默认值
+└── prompt_all_in_one/
+    ├── settings.json          # 编辑器服务器默认值
+    └── editor.sqlite3         # 按登录用户保存偏好、历史、收藏和 API 配置
+```
+
+只读取新路径，不迁移或读取根目录旧 JSON 配置。`userdata/` 不提交到 Git，也不通过 Gradio 文件接口公开。
 
 ### 来源与开发
 

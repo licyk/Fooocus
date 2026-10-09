@@ -21,7 +21,10 @@ def services():
     from modules.sdxl_styles import legal_style_names
 
     settings = SettingsStore(
-        Path(config.config_path).resolve().parent / "tagcomplete_settings.json"
+        Path(config.config_path).resolve().parent
+        / "userdata"
+        / "tagcomplete"
+        / "settings.json"
     )
     catalog = Catalog(
         config.path_tagcomplete,

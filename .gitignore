@@ -16,7 +16,6 @@ hash_cache.txt
 /language/default.json
 /test_imgs
 config.txt
-tagcomplete_settings.json
 config_modification_tutorial.txt
 user_path_config.txt
 user_path_config-deprecated.txt
@@ -55,6 +54,5 @@ user_path_config-deprecated.txt
 /auth.json
 .DS_Store
 
-prompt_all_in_one_settings.json
 /userdata/
 /frontend/prompt_all_in_one/node_modules/
