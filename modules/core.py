@@ -9,6 +9,7 @@ import ldm_patched.modules.model_patcher
 import ldm_patched.modules.utils
 import ldm_patched.modules.controlnet
 import modules.sample_hijack
+import modules.anima
 import ldm_patched.modules.samplers
 import ldm_patched.modules.latent_formats
 
@@ -144,6 +145,9 @@ def apply_controlnet(positive, negative, control_net, image, strength, start_per
 @torch.no_grad()
 @torch.inference_mode()
 def load_model(ckpt_filename, vae_filename=None):
+    if modules.anima.is_anima_file(ckpt_filename):
+        unet, clip, vae, vae_filename = modules.anima.load_model(ckpt_filename, vae_filename)
+        return StableDiffusionModel(unet=unet, clip=clip, vae=vae, filename=ckpt_filename, vae_filename=vae_filename)
     unet, clip, vae, vae_filename, clip_vision = load_checkpoint_guess_config(ckpt_filename, embedding_directory=path_embeddings,
                                                                 vae_filename_param=vae_filename)
     return StableDiffusionModel(unet=unet, clip=clip, vae=vae, clip_vision=clip_vision, filename=ckpt_filename, vae_filename=vae_filename)
@@ -225,6 +229,14 @@ def get_previewer(model):
     global VAE_approx_models
 
     from modules.config import path_vae_approx
+    if model.model.model_type == ldm_patched.modules.model_base.ModelType.FLOW:
+        latent_format = model.model.latent_format
+        def preview_function(x0, step, total_steps):
+            matrix = x0.new_tensor(latent_format.latent_rgb_factors)
+            bias = x0.new_tensor(latent_format.latent_rgb_factors_bias)
+            rgb = x0[0].movedim(0, -1) @ matrix + bias
+            return ((rgb + 1) * 127.5).clamp(0, 255).byte().cpu().numpy()
+        return preview_function
     is_sdxl = isinstance(model.model.latent_format, ldm_patched.modules.latent_formats.SDXL)
     vae_approx_filename = os.path.join(path_vae_approx, 'xlvaeapp.pth' if is_sdxl else 'vaeapp_sd15.pth')
 
@@ -265,7 +277,16 @@ def get_previewer(model):
 def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sampler_name='dpmpp_2m_sde_gpu',
              scheduler='karras', denoise=1.0, disable_noise=False, start_step=None, last_step=None,
              force_full_denoise=False, callback_function=None, refiner=None, refiner_switch=-1,
-             previewer_start=None, previewer_end=None, sigmas=None, noise_mean=None, disable_preview=False):
+             previewer_start=None, previewer_end=None, sigmas=None, noise_mean=None, disable_preview=False, resume=False):
+    if model.model.model_type == ldm_patched.modules.model_base.ModelType.FLOW:
+        modules.anima.validate_sampling(sampler_name, scheduler)
+    if refiner is not None and isinstance(refiner.model, modules.anima.AnimaModel):
+        modules.anima.validate_sampling(sampler_name, scheduler)
+        if not isinstance(model.model, modules.anima.AnimaModel):
+            raise ValueError('SDXL to Anima refinement requires the VAE bridge in process_diffusion.')
+    if resume:
+        model = model.clone()
+        model.model_options['anima_resume'] = True
 
     if sigmas is not None:
         sigmas = sigmas.clone().to(ldm_patched.modules.model_management.get_torch_device())
@@ -317,6 +338,11 @@ def ksampler(model, positive, negative, latent, seed=None, steps=30, cfg=7.0, sa
                                                     callback=callback,
                                                     disable_pbar=disable_pbar, seed=seed, sigmas=sigmas)
 
+        import modules.inpaint_worker as inpaint_worker
+        inpaint_task = inpaint_worker.current_task
+        if getattr(inpaint_task, 'is_model_free', False):
+            output_model = refiner.model if refiner is not None and refiner_switch < steps else model.model
+            samples = inpaint_task.finish_sample(samples, output_model)
         out = latent.copy()
         out["samples"] = samples
     finally:

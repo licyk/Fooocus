@@ -6,7 +6,7 @@ def cast_bias_weight(s, input):
     non_blocking = ldm_patched.modules.model_management.device_supports_non_blocking(input.device)
     if s.bias is not None:
         bias = s.bias.to(device=input.device, dtype=input.dtype, non_blocking=non_blocking)
-    weight = s.weight.to(device=input.device, dtype=input.dtype, non_blocking=non_blocking)
+    weight = None if s.weight is None else s.weight.to(device=input.device, dtype=input.dtype, non_blocking=non_blocking)
     return weight, bias
 
 

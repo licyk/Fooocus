@@ -10,6 +10,11 @@ import supervision as sv
 import torch
 from groundingdino.util.inference import Model
 from groundingdino.util.inference import load_model, preprocess_caption, get_phrases_from_posmap
+import groundingdino.models.GroundingDINO.groundingdino as groundingdino_model
+from extras.GroundingDINO.bert import wrap_bert_model
+
+
+groundingdino_model.BertModelWarper = wrap_bert_model
 
 
 class GroundingDinoModel(Model):

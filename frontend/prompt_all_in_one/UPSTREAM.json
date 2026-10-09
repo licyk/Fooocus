@@ -1,0 +1,1147 @@
+{
+  "repository": "https://github.com/licyk/sd-webui-prompt-all-in-one",
+  "original_repository": "https://github.com/Physton/sd-webui-prompt-all-in-one",
+  "commit": "5179da83c7a6ba688f924f0c81cb775d5695a414",
+  "license": "MIT; the vendored UlionTse/translators server retains GPL-3.0-or-later",
+  "method": "Source files copied from the local checkout, then adapted for Fooocus. The source hashes refer to that checkout. Translation metadata is sanitized; no source-installation credentials are copied.",
+  "adaptations": [
+    "Single upstream Vue App with Teleport for native positive/negative/Inpaint/Enhance inputs",
+    "Native Gradio model and parameter bridges, shared tag-completion worker, actual model directories and tokenizer capabilities",
+    "Authenticated per-user SQLite persistence with injected original History implementation",
+    "Fooocus API endpoints, optional dependencies in the current interpreter, cancellation and teardown",
+    "Bundled icons, local CSS assets, removal of A1111 global and eval dependencies, whitespace cleanup"
+  ],
+  "host_only_files": [
+    "javascript/prompt_all_in_one/controller.js",
+    "modules/prompt_all_in_one/upstream_api.py",
+    "frontend/prompt_all_in_one/src/style.css",
+    "frontend/prompt_all_in_one/src/utils/hostWeights.js",
+    "frontend/prompt_all_in_one/tests/upstream.test.js"
+  ],
+  "files": [
+    {
+      "path": "frontend/prompt_all_in_one/LICENSE.upstream",
+      "source_path": "LICENSE",
+      "source_sha256": "c393dbb74fbb80f4de5dde799955ecea5373a8298b0ed4c97e7d66e2010644d7",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/globals.js",
+      "source_path": "src/globals.js",
+      "source_sha256": "874256ec0864e21f32d8ea7db227c9cf07169969a46cdf54b812976d5be92317",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/package.json",
+      "source_path": "src/package.json",
+      "source_sha256": "777d626de12d23eeca573bc2381131aca22b8addfb9e24735efcc482a8670f1e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/App.vue",
+      "source_path": "src/src/App.vue",
+      "source_sha256": "53304e7f2302af36b9a9655609ea61bf9902cf347f248eb8d11e844bd52d8254",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/about.vue",
+      "source_path": "src/src/components/about.vue",
+      "source_sha256": "ba61b11e19eb93f6b7bfe4d3f37a3446b184662ab16f5aa4ebd41f813b17681f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/blacklist.vue",
+      "source_path": "src/src/components/blacklist.vue",
+      "source_sha256": "5ec5fd257af201ad13f47d74606adbaa50e89861276233a0b09c6b7f126f060c",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/chatgptPrompt.vue",
+      "source_path": "src/src/components/chatgptPrompt.vue",
+      "source_sha256": "1663e8059783783d0b5d68523f2852081d93eef35e95b904eb3c27f4dc7df498",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/extensionCss.vue",
+      "source_path": "src/src/components/extensionCss.vue",
+      "source_sha256": "2bdf445f34e08f0171c5b83a8aa35a10f8813c34eb369086020e457304f9873a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/extraNetworksPopup.vue",
+      "source_path": "src/src/components/extraNetworksPopup.vue",
+      "source_sha256": "9588f07b6687fa04d65d26fa05992e793095a06f4d45c0d977d3e2e9795fa4d3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/favorite.vue",
+      "source_path": "src/src/components/favorite.vue",
+      "source_sha256": "a0958c9523c4b3355ca3966ad928b57b81cc34e308d2e10b33ea1bc59e6840df",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/highlightPrompt.vue",
+      "source_path": "src/src/components/highlightPrompt.vue",
+      "source_sha256": "618ae92c35cd542cc345f960fc9d64947adcad92f020b183984f16bb8e72441e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/history.vue",
+      "source_path": "src/src/components/history.vue",
+      "source_sha256": "75d017f12a1e27c8afa232cde0ea47f6a1802ad4c0b58ef852f5cf42c166748d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/hotkey.vue",
+      "source_path": "src/src/components/hotkey.vue",
+      "source_sha256": "ee8955f1f4a95b463e7abfe6664458a0703b87f2ac741bf96504499c4c35de98",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/iconSvg.vue",
+      "source_path": "src/src/components/iconSvg.vue",
+      "source_sha256": "5d3a0e22d9e64a02dc93a4dff68e7e5fd5f8b4cbf2bbd9fcfecaad5ce3d19a3b",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/packagesState.vue",
+      "source_path": "src/src/components/packagesState.vue",
+      "source_sha256": "5c200535c7936b01644a238e6a67654975ca70bf735d68ac5301ec6a0a13b6a1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/phystonPrompt.vue",
+      "source_path": "src/src/components/phystonPrompt.vue",
+      "source_sha256": "96f972340fcf0f64f78d71b53860b9aa365758ddd7d0a6bb984229cbf16ebacd",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/promptFormat.vue",
+      "source_path": "src/src/components/promptFormat.vue",
+      "source_sha256": "be1ff6e28c70cfca134723237650ef55020ab889cf3d5f1268e60f9f8d4e0ac8",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/selectLanguage.vue",
+      "source_path": "src/src/components/selectLanguage.vue",
+      "source_sha256": "b35ea1a40742762daf9f407ed71f508b350eb8c7ebfa5ce7c5b0f4f2e6a1f711",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/translateSetting.vue",
+      "source_path": "src/src/components/translateSetting.vue",
+      "source_sha256": "129faa8c3ac9315aae75e3fb12f54658e15bb38fa6164357d469bb9e77242925",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/components/vue-number-input.vue",
+      "source_path": "src/src/components/vue-number-input.vue",
+      "source_sha256": "11209230f0c508127cd7f0f79e67cc03321ca21af11e7ee0cf513db06245225f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/i18n.json",
+      "source_path": "i18n.json",
+      "source_sha256": "39b86eb963ae7b1834bb5699b4783584a0dec5ea9ac56ebb982cbf3fdff29f0e",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/main.js",
+      "source_path": "src/src/main.js",
+      "source_sha256": "f294f47670b681da9db9cad1cd3a174118e9c01f58e305b721362de6cbcbde5f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/commonMixin.js",
+      "source_path": "src/src/mixins/commonMixin.js",
+      "source_sha256": "397faa64b51f174587ed746fe1dc2bf8d4d467d24802f3152e223c457ccd9456",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/languageMixin.js",
+      "source_path": "src/src/mixins/languageMixin.js",
+      "source_sha256": "36c96f6c63224ee259c3a65e8e3e9b90ca368613c8bbee8092c6ff323b44ed3a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/phystonPrompt/dropMixin.js",
+      "source_path": "src/src/mixins/phystonPrompt/dropMixin.js",
+      "source_sha256": "4d4527a1671861f3a7db1be847da82b9c094383b53932fdd8cc00db6bfd508d1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/phystonPrompt/groupTagsMixin.js",
+      "source_path": "src/src/mixins/phystonPrompt/groupTagsMixin.js",
+      "source_sha256": "aaf18ebe6860e391d3c66f224e4142703a701f0134a9ea158b21386975b84fcd",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/phystonPrompt/headerMixin.js",
+      "source_path": "src/src/mixins/phystonPrompt/headerMixin.js",
+      "source_sha256": "8db997f41e514ce718cfb87c79ea48d81e78c5d11bb639493956afa09b9c07c3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/mixins/phystonPrompt/tagMixin.js",
+      "source_path": "src/src/mixins/phystonPrompt/tagMixin.js",
+      "source_sha256": "4e27bef119d8851cad71934ddc289cd8c3e85078ed9e6c7012949234c4b58a66",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/common.js",
+      "source_path": "src/src/utils/common.js",
+      "source_sha256": "7d6f3ed568fa600aa2db4034ff1cb61ccd386646b0274e00aed877dec916a76c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/favorite.js",
+      "source_path": "src/src/utils/favorite.js",
+      "source_sha256": "41d999992075f501c24d793beb9739a3a10b7a00186f388442d0f580aa3619d5",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/favoriteItem.js",
+      "source_path": "src/src/utils/favoriteItem.js",
+      "source_sha256": "ad132af67ca244d754c6e2445a21a6f0a43002abe56556fe62cf13f6cf5b0a49",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/gradioAPI.js",
+      "source_path": "src/src/utils/gradioAPI.js",
+      "source_sha256": "713990fb7e61ee16919f0a5d25e737b295fdb2f903aa19534f85a0f822c525a5",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/history.js",
+      "source_path": "src/src/utils/history.js",
+      "source_sha256": "ce01e70d4c07c94976b472f47f1646b2d5f9ae0ab05ae20daf5ca57d027e2e81",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/historyItem.js",
+      "source_path": "src/src/utils/historyItem.js",
+      "source_sha256": "2d8240b97af4dc110d82b518b9b86d83682188514b09ab6aeb71071b67f3f20c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/splitTags.js",
+      "source_path": "src/src/utils/splitTags.js",
+      "source_sha256": "f4e97f1014afc34fa8799214483d595e5425678ddbf921a82ccda63ed36558b7",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/src/utils/waitTick.js",
+      "source_path": "src/src/utils/waitTick.js",
+      "source_sha256": "6b9c69f3ea163621b2e64b1adc4e42c80ec3abc9d920412e4604de15e19b3f90",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/animate.less",
+      "source_path": "styles/animate.less",
+      "source_sha256": "a53f27ac2c4706c82ae3ffa9b84dc9713cbf5f1edfefb5611592a4d85d0c8a57",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/animate.min.css",
+      "source_path": "styles/animate.min.css",
+      "source_sha256": "1e1766921986f47c6261193a9b687c9dc59b1a12acb17710de0e3c3877fcff25",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/MyStyle-shuai/manifest.json",
+      "source_path": "styles/extensions/MyStyle-shuai/manifest.json",
+      "source_sha256": "19b6526fabcfb4ee30ff61733f4b9e7926f5134d8db9b3c81969eaf9bdb16953",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/MyStyle-shuai/style.min.css",
+      "source_path": "styles/extensions/MyStyle-shuai/style.min.css",
+      "source_sha256": "d8883b7af8eab2957d3a3ec3c1ef9afbdb1592ca99c8039627c6642519c6cf8c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/README.MD",
+      "source_path": "styles/extensions/README.MD",
+      "source_sha256": "c2add369ec770be7c3136788978f6714e81905952f55186c3126c5623179a228",
+      "modified": false,
+      "removed": true,
+      "replaced_by": "readme.md"
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/code.svg",
+      "source_path": "styles/extensions/Webui/images/code.svg",
+      "source_sha256": "e428157b4f677248011f48e7f9a6cac54e4bffe3850c7c8bdc9d5c0057133a91",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/d.svg",
+      "source_path": "styles/extensions/Webui/images/d.svg",
+      "source_sha256": "e5eb57a70b97733d1e0f3360ccdb632d5f9e98a681255805e418b3fe6cc38298",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/favorite.svg",
+      "source_path": "styles/extensions/Webui/images/favorite.svg",
+      "source_sha256": "8552b5fe9fcd2fa49a1b8fafc7943184c3b065c123346dd559ac01eef82709fd",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/favorite_l.svg",
+      "source_path": "styles/extensions/Webui/images/favorite_l.svg",
+      "source_sha256": "a392f223799aed5d42825c015ae00129b43e02cb30d591488c97364ab705ded4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/lan.svg",
+      "source_path": "styles/extensions/Webui/images/lan.svg",
+      "source_sha256": "ba999d62a131284a333e65b79b7d339548bcaf8373a5d48301fa639f86485725",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/updown.svg",
+      "source_path": "styles/extensions/Webui/images/updown.svg",
+      "source_sha256": "01038b1c363f802de7e5e8929e0711f5aadf19a734d2505b7a3abb503aabaeb0",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/人物.svg",
+      "source_path": "styles/extensions/Webui/images/人物.svg",
+      "source_sha256": "13aea414e0763fa4b0f686054777aeab0ef6c042b76fd854d319479481a35082",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/其它.svg",
+      "source_path": "styles/extensions/Webui/images/其它.svg",
+      "source_sha256": "343c2fdf3a3ef3fe33bcad626269071366a159b8a9d6ab97f6e637b6998decc3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/反向提示词.svg",
+      "source_path": "styles/extensions/Webui/images/反向提示词.svg",
+      "source_sha256": "18e101cbc5e0dce34645293013baeff0a729780d2517214c9083ceb8f67d735b",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/场景.svg",
+      "source_path": "styles/extensions/Webui/images/场景.svg",
+      "source_sha256": "b676a85e5e6489e1101d5ee6562e13a888452611031f16eac7e79b47acc52c3d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/开始.svg",
+      "source_path": "styles/extensions/Webui/images/开始.svg",
+      "source_sha256": "f1d795cd5d6c8c5032c1c16d6f4fb4af1800140c7867087ed2cca15b3d2fc8e3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/服饰.svg",
+      "source_path": "styles/extensions/Webui/images/服饰.svg",
+      "source_sha256": "654970fd71d353116fb6da08940f04b603ef3c010cee1e7b4f30f225c759cb44",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/汉服.svg",
+      "source_path": "styles/extensions/Webui/images/汉服.svg",
+      "source_sha256": "af88051e3b39315732fb7f4dd798cdc42dae74d63bac53377b65cdefab740f96",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/物品.svg",
+      "source_path": "styles/extensions/Webui/images/物品.svg",
+      "source_sha256": "d4add413e5fcebc73877eb0046e8db1d3f033abab5769087d3f52cd7255f0c6f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/环境.svg",
+      "source_path": "styles/extensions/Webui/images/环境.svg",
+      "source_sha256": "3dc2f86a395afdb2d90347c50a9d3cfabec422824955b15de8c630734b8d4c95",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/画面.svg",
+      "source_path": "styles/extensions/Webui/images/画面.svg",
+      "source_sha256": "f26d4dc751c1124c8a475125f6e88b70edc4c880beb9e414475b0987ce422d44",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/表情动作.svg",
+      "source_path": "styles/extensions/Webui/images/表情动作.svg",
+      "source_sha256": "ecfcd3f0ffc50d56d03ec2567d4da9c9bfcd2f3159e7167a3bc83a7a3faee4a7",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/镜头.svg",
+      "source_path": "styles/extensions/Webui/images/镜头.svg",
+      "source_sha256": "633f4bc2fa207935d9f17e4dcc89db057b6a947ca4087ae0aaf0b93ed7cc89ec",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/魔法系.svg",
+      "source_path": "styles/extensions/Webui/images/魔法系.svg",
+      "source_sha256": "04b72e44e5751cc6523f1ca067bd7fa50892cbeb77748329ef5dc5e2ff372706",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/manifest.json",
+      "source_path": "styles/extensions/Webui/manifest.json",
+      "source_sha256": "915ffabc5038f23e5e98070a4e090de8c715ff742f1ffcd27211664a858b1c17",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/Webui/style.min.css",
+      "source_path": "styles/extensions/Webui/style.min.css",
+      "source_sha256": "95a17abc055f715d08940769dec088d5b1a91511ec502e69ee5aedc80c3acdd9",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/demo.zip",
+      "source_path": "styles/extensions/demo.zip",
+      "source_sha256": "39efc0a0a99e67ae40f6acb86639c774a4a3ac110d29781dbf06c06a1a35b463",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/firefox-fix/manifest.json",
+      "source_path": "styles/extensions/firefox-fix/manifest.json",
+      "source_sha256": "9d77ae651c4697bead1cfbcbde63f4476efcca3ab69a7abcef316c4fd909ca62",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/firefox-fix/style.less",
+      "source_path": "styles/extensions/firefox-fix/style.less",
+      "source_sha256": "5a3324c4cb42080f50df8453386ec2146901f4ccbf939e06171bc0a1c4330b9d",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/firefox-fix/style.min.css",
+      "source_path": "styles/extensions/firefox-fix/style.min.css",
+      "source_sha256": "98bb86230252c5712ce18741cbbefa956f69dc7531944389dde46a9e5ce00299",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/full-input/manifest.json",
+      "source_path": "styles/extensions/full-input/manifest.json",
+      "source_sha256": "fe1ee62cc3f1d4977eb1106f9338f1b1ecf15c9398ff55fc6edd3d42f7b15c36",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/full-input/style.less",
+      "source_path": "styles/extensions/full-input/style.less",
+      "source_sha256": "34295e14b639db934ff116bb3cd31ad9a952d1fa53a9913e1fbf96c6a414a8b1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/full-input/style.min.css",
+      "source_path": "styles/extensions/full-input/style.min.css",
+      "source_sha256": "de09bed467c5e4575193f098421a5aad6573de216dbf11606214165aacf743d8",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-group-tags-en-text/manifest.json",
+      "source_path": "styles/extensions/hide-group-tags-en-text/manifest.json",
+      "source_sha256": "24fbd5cc90e90424c7fb445f10b3e36deaef6f72d47cc00b1a2991b6a477f608",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-group-tags-en-text/style.less",
+      "source_path": "styles/extensions/hide-group-tags-en-text/style.less",
+      "source_sha256": "8e15ba737a0620bb313fbad444248c5d7aa781a789a536f361f9117ef9419859",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-group-tags-en-text/style.min.css",
+      "source_path": "styles/extensions/hide-group-tags-en-text/style.min.css",
+      "source_sha256": "44786e7d4612a46d81afc67cae1f6c62ff0ac26f2347c801cb8dfde1a60bc6f6",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-input-dropdown/manifest.json",
+      "source_path": "styles/extensions/hide-input-dropdown/manifest.json",
+      "source_sha256": "ff2f1619783b2866b865c65fbb0f250331102ddb2d7e3d3fe893f378c42d19ac",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-input-dropdown/style.less",
+      "source_path": "styles/extensions/hide-input-dropdown/style.less",
+      "source_sha256": "eb4c9cc118034d0413ea12e22e2145ac3e1a5230998134af90d19271764501aa",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-input-dropdown/style.min.css",
+      "source_path": "styles/extensions/hide-input-dropdown/style.min.css",
+      "source_sha256": "5f9022c4b70977a3f786e131738ccf6719485412844e7b8bd3ba7b73e50da4d9",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns/manifest.json",
+      "source_path": "styles/extensions/hide-tag-btns/manifest.json",
+      "source_sha256": "e7d0fa3489649df78f26df058ad8e1f563c3afb0283d074651526220007348e6",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns/style.less",
+      "source_path": "styles/extensions/hide-tag-btns/style.less",
+      "source_sha256": "4e109f467e918072c25f5bba7db7ae79c1a1c3b58248c9c221244079995337e1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns/style.min.css",
+      "source_path": "styles/extensions/hide-tag-btns/style.min.css",
+      "source_sha256": "27308d080ee2d7218f1427e7f83d0b2b498680a13973a4d5f654961ec6b7a6f1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-blacklist/manifest.json",
+      "source_path": "styles/extensions/hide-tag-btns-blacklist/manifest.json",
+      "source_sha256": "a22079f29dd88261d2008bbed9401ba35e12094ec712e2ef460c2e4c5f05ec1a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-blacklist/style.less",
+      "source_path": "styles/extensions/hide-tag-btns-blacklist/style.less",
+      "source_sha256": "eac77ae5c48cfa9f34eae7e5eb34567db2ae516c22f59ff40388106dc7ce6394",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-blacklist/style.min.css",
+      "source_path": "styles/extensions/hide-tag-btns-blacklist/style.min.css",
+      "source_sha256": "b58ab67c884e486522c28d16c2e82eca26dfa1d82c956ace50e85cafffe62ab1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight/manifest.json",
+      "source_path": "styles/extensions/hide-tag-btns-weight/manifest.json",
+      "source_sha256": "b75817da5227a540a18771ab2f1707f8af492b07e5aa4297457091892f3a7c7f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight/style.less",
+      "source_path": "styles/extensions/hide-tag-btns-weight/style.less",
+      "source_sha256": "2dd7049f418d52134019cb33ecea7f0ec1dc01c0e60a8a5eec40bf8adb05811e",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight/style.min.css",
+      "source_path": "styles/extensions/hide-tag-btns-weight/style.min.css",
+      "source_sha256": "1cdabcbe7d4e624e510e84a8602b57979bdd5e9f95620d68b9711f306754ce72",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight-brackets/manifest.json",
+      "source_path": "styles/extensions/hide-tag-btns-weight-brackets/manifest.json",
+      "source_sha256": "3aa8080ec9036267e1a054e379d9aa100f5950c54315b4cc3a29f99da784d749",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight-brackets/style.less",
+      "source_path": "styles/extensions/hide-tag-btns-weight-brackets/style.less",
+      "source_sha256": "8918df5aa0c839c4cc98fa1ede6d1a41383dddf6a5564ab563ed21b8c767ebf9",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-btns-weight-brackets/style.min.css",
+      "source_path": "styles/extensions/hide-tag-btns-weight-brackets/style.min.css",
+      "source_sha256": "c5cf3796d397454705fcd7f4ab023bde443c229eda3404baa0717b4c5b6ff543",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-extra-network-popup/manifest.json",
+      "source_path": "styles/extensions/hide-tag-extra-network-popup/manifest.json",
+      "source_sha256": "c024febd3eb97b34e97612701b8132d6b3c2082995426a39f9244301773128c3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-extra-network-popup/style.less",
+      "source_path": "styles/extensions/hide-tag-extra-network-popup/style.less",
+      "source_sha256": "a479d79a0462aaf940f93b64578f98c0eba5fedbb20482953ca9a3378fadf65c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-extra-network-popup/style.min.css",
+      "source_path": "styles/extensions/hide-tag-extra-network-popup/style.min.css",
+      "source_sha256": "788b0dade72cd2af9af17863a714feb9b7e06a0821dfa2b1fb45cffddfca4d8b",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-local/manifest.json",
+      "source_path": "styles/extensions/hide-tag-local/manifest.json",
+      "source_sha256": "9e62da6fd47cbfd5f7c9a0193cd1908e8cbda8e5c04e35b00533285817c786f8",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-local/style.less",
+      "source_path": "styles/extensions/hide-tag-local/style.less",
+      "source_sha256": "7c8d826f24d405a30e2094492511d445356439b0b7b20a81d8afb17766c9020e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/hide-tag-local/style.min.css",
+      "source_path": "styles/extensions/hide-tag-local/style.min.css",
+      "source_sha256": "125b5723ead368ea2bbd25800153c3d4826e076fc2e82a59188a74049fb7e893",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/left-input/manifest.json",
+      "source_path": "styles/extensions/left-input/manifest.json",
+      "source_sha256": "9ccbca11d1be8a6177b216a727aa0a0041c831a665a23d183dd5b1f85fe1b381",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/left-input/style.less",
+      "source_path": "styles/extensions/left-input/style.less",
+      "source_sha256": "b602df3929f166d26f6ead5c48368a21f2040af18721f214004bd6018713131d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/left-input/style.min.css",
+      "source_path": "styles/extensions/left-input/style.min.css",
+      "source_sha256": "a3a47df21881f08dad33f795d1c940c5ff1d4509c4d778d95eaa2fbb349efb15",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/line-breaks-new-line/manifest.json",
+      "source_path": "styles/extensions/line-breaks-new-line/manifest.json",
+      "source_sha256": "062a4b77a912217d539ecc01d3e6488819d387d16c4efe723c83008faef48363",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/line-breaks-new-line/style.less",
+      "source_path": "styles/extensions/line-breaks-new-line/style.less",
+      "source_sha256": "f00ce5463b5c426b7ad3cd5bcb98e664cc3ca5186d7594c22c9d11920074c1be",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/line-breaks-new-line/style.min.css",
+      "source_path": "styles/extensions/line-breaks-new-line/style.min.css",
+      "source_sha256": "6761ea5bf87324980b8d0d957572eb8dca58169c9482a164b0961701e37ebc5b",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/minimalist/manifest.json",
+      "source_path": "styles/extensions/minimalist/manifest.json",
+      "source_sha256": "7503b4d3dda155c19ecc5b2a96522f801a0f091b9fd162aeb6d8bfad0f31e2ea",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/minimalist/style.less",
+      "source_path": "styles/extensions/minimalist/style.less",
+      "source_sha256": "cd47cd470506d934a0f07ef0cf52665c4870bba8d6a3b8797e3a90c68c8d2892",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/minimalist/style.min.css",
+      "source_path": "styles/extensions/minimalist/style.min.css",
+      "source_sha256": "7106b82ef5d9a0d7c30d82e6c7534c18fed5ec7ff05bd6a5f31c00e9157f9eef",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/remove-hide-default-input/manifest.json",
+      "source_path": "styles/extensions/remove-hide-default-input/manifest.json",
+      "source_sha256": "8f9cc0175e565810621f2487a37c57baacde8cf7b7cd4976f0627980a6f4409a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/remove-hide-default-input/style.less",
+      "source_path": "styles/extensions/remove-hide-default-input/style.less",
+      "source_sha256": "de12a975a15b966a463dd3011ac93d7bebbdf558501e9f487eb5c3054d16b15a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/remove-hide-default-input/style.min.css",
+      "source_path": "styles/extensions/remove-hide-default-input/style.min.css",
+      "source_sha256": "aa5e4690eab1ab0e3b9a067bdb8861c37d547aedc73bcc1da57aa567db730709",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/setting-btns-top/manifest.json",
+      "source_path": "styles/extensions/setting-btns-top/manifest.json",
+      "source_sha256": "8e53610260f6e5f16b4dfa68a55be412c486155f2aa8b3b3b077a1886a8c05b4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/setting-btns-top/style.less",
+      "source_path": "styles/extensions/setting-btns-top/style.less",
+      "source_sha256": "dee4f8557cf11e409608315695d6157f44664914abe6a69dcf5465a07ca10a2d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/setting-btns-top/style.min.css",
+      "source_path": "styles/extensions/setting-btns-top/style.min.css",
+      "source_sha256": "571993ea025c7516b7545f55dbcb12c6ff4aaed380d2126fc3f9ddc98ec4482d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-btns-right/manifest.json",
+      "source_path": "styles/extensions/tag-btns-right/manifest.json",
+      "source_sha256": "2cf4f1d32ac775515ad81b4956fbbc432f315d849f704e0e0415546f8a121a4e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-btns-right/style.less",
+      "source_path": "styles/extensions/tag-btns-right/style.less",
+      "source_sha256": "8e652c9397c0284a0c9faeb60ac310f4a16d5d1ff017441d45ddc781f763057e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-btns-right/style.min.css",
+      "source_path": "styles/extensions/tag-btns-right/style.min.css",
+      "source_sha256": "6803a1dd2ee78d3374c508f982f6beb6dda95c66105dc4f750b1875112c81dbd",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-group-tweak/manifest.json",
+      "source_path": "styles/extensions/tag-group-tweak/manifest.json",
+      "source_sha256": "897d744ba13e4c81a00006670c3bce12cf2b28c3806a74336bd4f12a6d78a37a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-group-tweak/style.less",
+      "source_path": "styles/extensions/tag-group-tweak/style.less",
+      "source_sha256": "96914be1360618f0a39553ae73f3076bc0af520ac965e1de568fc80a2fd3d49b",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-group-tweak/style.min.css",
+      "source_path": "styles/extensions/tag-group-tweak/style.min.css",
+      "source_sha256": "25aa7f3cbc8e41b7a61f4f66d1cb809d1320dcdbb5035f9616ad86cd968919ab",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-weight-character/manifest.json",
+      "source_path": "styles/extensions/tag-weight-character/manifest.json",
+      "source_sha256": "f901508d133d9c8629ca61f6728afbead2fac4027ad7491d9fe397813c444e4b",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-weight-character/style.less",
+      "source_path": "styles/extensions/tag-weight-character/style.less",
+      "source_sha256": "6b2f24d91765fa7a93ae6f50f551886798eae3fccd63a71a41c95e85531f5e5a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/tag-weight-character/style.min.css",
+      "source_path": "styles/extensions/tag-weight-character/style.min.css",
+      "source_sha256": "a971a456d62929420220790c385f70c42bbff3d42fc97f154fe826a0bdadb2d8",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/weaken-keywords/manifest.json",
+      "source_path": "styles/extensions/weaken-keywords/manifest.json",
+      "source_sha256": "b4fd075957da6f6b65d158cb1ab9ef5051ad6bc69224d34c83e286283b074892",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/weaken-keywords/style.less",
+      "source_path": "styles/extensions/weaken-keywords/style.less",
+      "source_sha256": "feaffaac69d0543645fa7a5c66aae9a749586f0619f41bcd0bbf799156564bf3",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/extensions/weaken-keywords/style.min.css",
+      "source_path": "styles/extensions/weaken-keywords/style.min.css",
+      "source_sha256": "12e1e14f9eaea6ce1cb4fa8bcfbe497b8ebb632dd45b8ddb3e9126ca5743b664",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/host.css",
+      "source_path": "style.css",
+      "source_sha256": "2dbc09bdfba3ecd0a7a4334a5e308b9c11d8a45f4367b809fb4d0553ed158ee0",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/about.svg",
+      "source_path": "styles/icons/about.svg",
+      "source_sha256": "8fa9251b0758bc4da5cddd6f2b61ce71743df55e3bb1324e1b03740db8908c0e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/api.svg",
+      "source_path": "styles/icons/api.svg",
+      "source_sha256": "e16509958e61f3cae11e188c84ba728a51c4bd459484447f2d2722b6b5cb7fe4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/blacklist.svg",
+      "source_path": "styles/icons/blacklist.svg",
+      "source_sha256": "748018433574388c58dfea631b9367f6173f766ef58b7b56e8cfccf6b5498eb4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/chatgpt.svg",
+      "source_path": "styles/icons/chatgpt.svg",
+      "source_sha256": "1210c3fc0d36068be349dad30d41116e8d8caac616926b7e8d970a14eed88c04",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/clear.svg",
+      "source_path": "styles/icons/clear.svg",
+      "source_sha256": "4f00473c80cd346d2d10e2e3d577d04d80fc71265528a179f71c91d005b8b686",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/close.svg",
+      "source_path": "styles/icons/close.svg",
+      "source_sha256": "4e3f5696153ca313e6186b54c155bd4c701ea04e0130f07ea8ca94795f1770b9",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/copy.svg",
+      "source_path": "styles/icons/copy.svg",
+      "source_sha256": "d24643690db3256163eb442d379a257ac7f11aa53ae5a1e0e736b3beeb07d570",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/disabled.svg",
+      "source_path": "styles/icons/disabled.svg",
+      "source_sha256": "3d7a2c897083170017146902fba44c3af43e1af9d67d0def5aabd820222d69d4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/enable.svg",
+      "source_path": "styles/icons/enable.svg",
+      "source_sha256": "a834ce604db38ee52c47ff6daba1167d68ab3f789c135bdf4a59a63afc249c1a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/english.svg",
+      "source_path": "styles/icons/english.svg",
+      "source_sha256": "75767acd572817cc5651930d772393488ddd762b53edbf0c14f260f98db798fc",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/favorite-no.svg",
+      "source_path": "styles/icons/favorite-no.svg",
+      "source_sha256": "5f39cc893e9f2fefb0d29e2fb6072582ae21ee8864eef3827cde51feca27e1f1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/favorite-yes.svg",
+      "source_path": "styles/icons/favorite-yes.svg",
+      "source_sha256": "46b01b8a332cb2ac1f1c904cb08c86f1730213ab3e40a825517a40afa8c47a35",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/favorite.svg",
+      "source_path": "styles/icons/favorite.svg",
+      "source_sha256": "8f685823c80f1567024d2ff73d70ee61dc087a8f02c1bc67ae8ab78c251f0694",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/format.svg",
+      "source_path": "styles/icons/format.svg",
+      "source_sha256": "b0e6fd3f17fb7696f81e1f27f3ec1eab321615a7a3fa7e620315d2fdc51b1f90",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/github.svg",
+      "source_path": "styles/icons/github.svg",
+      "source_sha256": "8286e7c2a7e4440969997745497116820429d024b01fd983941ecbd25b4087eb",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/history.svg",
+      "source_path": "styles/icons/history.svg",
+      "source_sha256": "bea4981f66747c743b55879fc3e6c157c6f55992ed4109435c9c96a4014e1664",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/hotkey.svg",
+      "source_path": "styles/icons/hotkey.svg",
+      "source_sha256": "ce6fd5e4ea64a640e80cbe0bff2d81b6072b00ae42691cf72cd61c72eefd9963",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/i18n.svg",
+      "source_path": "styles/icons/i18n.svg",
+      "source_sha256": "b7c2269da7848de1d40c2b93805897218b6a8edc35d4ca90f4f8b2cb39e64a5c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/input.svg",
+      "source_path": "styles/icons/input.svg",
+      "source_sha256": "06bfaacc1310807311b3af8efe2a165e871aa0742ff7013c5b41b7747b7695a2",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/load.svg",
+      "source_path": "styles/icons/load.svg",
+      "source_sha256": "090d351681708afd2691adad8a13de2cd2c17c9c5203160b66fae7693feaca22",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/load2.svg",
+      "source_path": "styles/icons/load2.svg",
+      "source_sha256": "e3e67e132005fc455d0ff0c937015d9133f0722e6b76e16b9d74896cfbf9e0a1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/loading.svg",
+      "source_path": "styles/icons/loading.svg",
+      "source_sha256": "1d38baad4843f925fa7d67103e83776bddf224000ee416e1ec7b7830816f570d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/moon.svg",
+      "source_path": "styles/icons/moon.svg",
+      "source_sha256": "abee42e43ab590da316c77983b625386f69bccb43b0409610015a14c9f7f0e0f",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/move-down.svg",
+      "source_path": "styles/icons/move-down.svg",
+      "source_sha256": "c7fdc1cb2df221e9632f793c3edf4aeb611cde4e03be2a08e666a7b8cf33cb15",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/move-up.svg",
+      "source_path": "styles/icons/move-up.svg",
+      "source_sha256": "94287e2be44795760264027ba7432954f0f14799358ff25e5e30f4858728946e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/refresh.svg",
+      "source_path": "styles/icons/refresh.svg",
+      "source_sha256": "58d131d7dc894888d724214aec6bc48cd97de2515f050dce4215884efdd491f2",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/remove-space.svg",
+      "source_path": "styles/icons/remove-space.svg",
+      "source_sha256": "9a7399e1f785d99e66fb2505f9c9497cc6329c3d4e1ee4f039b395ab3590e091",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/remove.svg",
+      "source_path": "styles/icons/remove.svg",
+      "source_sha256": "7ed1b7c486147a2a29c82fc331233f9b7362a927af86e202bd9cd8461aac0b9e",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/reset.svg",
+      "source_path": "styles/icons/reset.svg",
+      "source_sha256": "749ad59a32271e58c90b22b0021da9e7d6df0671f1f41a58d4a2590649c6c583",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/setting.svg",
+      "source_path": "styles/icons/setting.svg",
+      "source_sha256": "0e223b0e99086d8aceb1a26842a2c1b27d8e5311fa08a98198ccf36c60fd1af7",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/sun.svg",
+      "source_path": "styles/icons/sun.svg",
+      "source_sha256": "165881824cac46c46d30296901cdd4377fc6dfa929b4e3403a3ca143ed5b64ca",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/theme.svg",
+      "source_path": "styles/icons/theme.svg",
+      "source_sha256": "aa74130657866cdc14f908fe0e135c6ddafb5bc311f7b0ff5b76bb801e07bf27",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/tooltip.svg",
+      "source_path": "styles/icons/tooltip.svg",
+      "source_sha256": "1911cca273391683c2e8ad921f048f2413ff26d81dcbb08b9849a949cc1596c2",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/translate.svg",
+      "source_path": "styles/icons/translate.svg",
+      "source_sha256": "aa73ba38decea5348afe45957f6af81dc1d51fa0cc06ccdac05c1a07b40f4b79",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/unfold.svg",
+      "source_path": "styles/icons/unfold.svg",
+      "source_sha256": "bf53da576a580306db15acf650e29277835db37b0f3e77cf7f046226727fd55c",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/use.svg",
+      "source_path": "styles/icons/use.svg",
+      "source_sha256": "b2d84cd665fb6b7724e2d43cbe0b89d8df6b8f13f43eca7ce412f6cdb1260c6a",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-braces-dec.svg",
+      "source_path": "styles/icons/weight-braces-dec.svg",
+      "source_sha256": "740772a1a6693cd2eb577150ede65db0f147684dac982baa81f8f495a0a84db1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-braces-inc.svg",
+      "source_path": "styles/icons/weight-braces-inc.svg",
+      "source_sha256": "9a5263e618a760dea099de96b8670951d686a5ffdd5e5303ad181a00359095c6",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-brackets-dec.svg",
+      "source_path": "styles/icons/weight-brackets-dec.svg",
+      "source_sha256": "88728cac134779397d1c74752c3f3f686ed5a15efcdea4440cacae549597bbb1",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-brackets-inc.svg",
+      "source_path": "styles/icons/weight-brackets-inc.svg",
+      "source_sha256": "0aae815f79a84bd05cc1b4824c346d349ab6fc220bc2dfff1adfa744f9a1c44d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-parentheses-dec.svg",
+      "source_path": "styles/icons/weight-parentheses-dec.svg",
+      "source_sha256": "328a66480758fa43510d387650a29f766eea5126d57fa15c68687f58415078ca",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/weight-parentheses-inc.svg",
+      "source_path": "styles/icons/weight-parentheses-inc.svg",
+      "source_sha256": "25cc84f20cbd348bd2dbca7aa32609f7888cfd7418382357bc26a956686b75e4",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/icons/wrap.svg",
+      "source_path": "styles/icons/wrap.svg",
+      "source_sha256": "ae654b0652d16c563caba58ab4ffe961ea1a4b1bd2c2269713cb160d29280934",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/main.less",
+      "source_path": "styles/main.less",
+      "source_sha256": "552bd7d70d0315997d61ef8d7d00459a6ad42afa39c0d5795992f7ef484d8dff",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/main.min.css",
+      "source_path": "styles/main.min.css",
+      "source_sha256": "22f8f9c614ec0fd333d3800f7140e9482ca4edbde7b015bf707c7ba25ddcd70d",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/tippy.css",
+      "source_path": "styles/tippy.css",
+      "source_sha256": "5969f497d9158d7682f8219c6f13fa67269cdf5bf50a3931d95327151dee5678",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/toastr.min.css",
+      "source_path": "styles/toastr.min.css",
+      "source_sha256": "47dd690f8f315bea076e92581a7e7147443bb4c847e313ab5a7d50a8c44836d0",
+      "modified": true
+    },
+    {
+      "path": "frontend/prompt_all_in_one/styles/vue3-colorpicker.css",
+      "source_path": "styles/vue3-colorpicker.css",
+      "source_sha256": "bf86041a5375b21f63fec1bcc4a4c937a9bd40ff702be49b09e6fefa01c2e3f6",
+      "modified": false
+    },
+    {
+      "path": "frontend/prompt_all_in_one/vite.config.js",
+      "source_path": "src/vite.config.js",
+      "source_sha256": "7783ad34a50133f97d1b41a43a46121ed41cf896a3d78ca5489610e1c24f7d17",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/de_DE.yaml",
+      "source_path": "group_tags/de_DE.yaml",
+      "source_sha256": "6996f0765d682b63923ef165ffac428639f49b9624d32e6cb1a7cdb302d81522",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/default.yaml",
+      "source_path": "group_tags/default.yaml",
+      "source_sha256": "67d5c163ef8f50bc371059a458992639e0181dc8872f183eda71dcbe6cde63e9",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/es_ES.yaml",
+      "source_path": "group_tags/es_ES.yaml",
+      "source_sha256": "3360bd6577dab58ad520bd2b444efabf6464fba0a4fb99e02f9730005dd5d82a",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/fr_FR.yaml",
+      "source_path": "group_tags/fr_FR.yaml",
+      "source_sha256": "b150598b5fd046416ce5d50e2b60d509bd487446fef6fad411f5d53ca2810d43",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/it_IT.yaml",
+      "source_path": "group_tags/it_IT.yaml",
+      "source_sha256": "6a697a0effca0e54c749a403f6bc4eda7fee35f3a29a44c31be3fea1f19ba9e4",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/ja_JP.yaml",
+      "source_path": "group_tags/ja_JP.yaml",
+      "source_sha256": "3811e960f5a72396139e41815acc4bb06dc3f432d3119369965691194602c056",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/ko_KR.yaml",
+      "source_path": "group_tags/ko_KR.yaml",
+      "source_sha256": "31e3753cff9e381b396b0ae455533993138e753c808f40199c12de6b188d6b01",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/pt_PT.yaml",
+      "source_path": "group_tags/pt_PT.yaml",
+      "source_sha256": "300755d15df61a6f9ac1f62ee177244efadd646787943187cea44eed64d8de0b",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/ru_RU.yaml",
+      "source_path": "group_tags/ru_RU.yaml",
+      "source_sha256": "befb106ab24bd810c12c88f6cd7feacfa6d809a2a4053ec2275b2fb45eb2e5bb",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/zh_CN.yaml",
+      "source_path": "group_tags/zh_CN.yaml",
+      "source_sha256": "7915f199752c1f3a8d42b6a6839000fee7e9a247c50a48564036147279e4b969",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/zh_HK.yaml",
+      "source_path": "group_tags/zh_HK.yaml",
+      "source_sha256": "58183c0e2f4bfd26cd232d972598abb01e028044e0fcb4c76c1d8568e1fa09c2",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/group_tags/zh_TW.yaml",
+      "source_path": "group_tags/zh_TW.yaml",
+      "source_sha256": "d91b06dadaad02312caa3e6f8ed9b9ad4476eb94a85a5ccb6a1bf6a586f90d1d",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/history.py",
+      "source_path": "scripts/physton_prompt/history.py",
+      "source_sha256": "2730f610101a9a8e1903f6588e636d78ab161e84add6b60efd1930b61b0f8426",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/packages.py",
+      "source_path": "scripts/physton_prompt/packages.py",
+      "source_sha256": "e90309aff6eeafb2c3fc7e8a11097a51d706f7cdc32b838bf8f59e063246a0cd",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/providers/translators_server.py",
+      "source_path": "scripts/physton_prompt/translators/server.py",
+      "source_sha256": "3f5b06d1e2e310df66ab3565d60008bff83b1897b013912fc5ed6df365f4695a",
+      "modified": false
+    },
+    {
+      "path": "modules/prompt_all_in_one/providers/translators_translator.py",
+      "source_path": "scripts/physton_prompt/translator/translators_translator.py",
+      "source_sha256": "2a150a764aa1c3d01228df8b143129dadfab896733049fb17e843202eda5803a",
+      "modified": true
+    },
+    {
+      "path": "modules/prompt_all_in_one/translate_apis.json",
+      "source_path": "translate_apis.json",
+      "source_sha256": "3bd31505e462e87a8aceb10e75f02dcb033d44aa681971e281c2e1f5795db34e",
+      "modified": true
+    }
+  ]
+}

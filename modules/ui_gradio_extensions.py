@@ -1,13 +1,9 @@
 # based on https://github.com/AUTOMATIC1111/stable-diffusion-webui/blob/v1.6.0/modules/ui_gradio_extensions.py
 
 import os
-import gradio as gr
 import args_manager
 
 from modules.localization import localization_js
-
-
-GradioTemplateResponseOriginal = gr.routes.templates.TemplateResponse
 
 modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = os.path.dirname(modules_path)
@@ -19,7 +15,7 @@ def webpath(fn):
     else:
         web_path = os.path.abspath(fn)
 
-    return f'file={web_path}?{os.path.getmtime(fn)}'
+    return f'/gradio_api/file={web_path}?{os.path.getmtime(fn)}'
 
 
 def javascript_html():
@@ -36,41 +32,16 @@ def javascript_html():
     head += f'<script type="text/javascript" src="{context_menus_js_path}"></script>\n'
     head += f'<script type="text/javascript" src="{localization_js_path}"></script>\n'
     head += f'<script type="text/javascript" src="{zoom_js_path}"></script>\n'
+    head += f'<script type="text/javascript" src="{webpath("javascript/inpaint.js")}"></script>\n'
     head += f'<script type="text/javascript" src="{edit_attention_js_path}"></script>\n'
     head += f'<script type="text/javascript" src="{viewer_js_path}"></script>\n'
     head += f'<script type="text/javascript" src="{image_viewer_js_path}"></script>\n'
+    for filename in ['engine.js', 'caret.js', 'controller.js']:
+        head += f'<script type="text/javascript" src="{webpath("javascript/tagcomplete/" + filename)}"></script>\n'
+    head += f'<script type="text/javascript" src="{webpath("javascript/prompt_all_in_one/controller.js")}"></script>\n'
     head += f'<meta name="samples-path" content="{samples_path}">\n'
 
     if args_manager.args.theme:
         head += f'<script type="text/javascript">set_theme(\"{args_manager.args.theme}\");</script>\n'
 
     return head
-
-
-def css_html():
-    style_css_path = webpath('css/style.css')
-    head = f'<link rel="stylesheet" property="stylesheet" href="{style_css_path}">'
-    return head
-
-def reload_javascript():
-    js = javascript_html()
-    css = css_html()
-
-    def template_response(*args, **kwargs):
-        # Gradio 3.41.2 gọi old-style: TemplateResponse("index.html", {"request": req, ...})
-        # Starlette mới expect:          TemplateResponse(request, "index.html", {"request": req, ...})
-        # → args bị lệch → dict bị truyền vào jinja2 làm template name → crash
-        if args and isinstance(args[0], str) and len(args) > 1 and isinstance(args[1], dict):
-            name = args[0]
-            context = args[1]
-            request = context.get("request")
-            if request is not None:
-                args = (request, name, context) + args[2:]
-
-        res = GradioTemplateResponseOriginal(*args, **kwargs)
-        res.body = res.body.replace(b'</head>', f'{js}</head>'.encode("utf8"))
-        res.body = res.body.replace(b'</body>', f'{css}</body>'.encode("utf8"))
-        res.init_headers()
-        return res
-
-    gr.routes.templates.TemplateResponse = template_response

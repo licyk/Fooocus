@@ -1,3 +1,7 @@
+from html import escape
+
+from modules.localization import translate
+
 progress_html = '''
 <div class="loader-container">
   <div class="loader"></div>
@@ -9,5 +13,5 @@ progress_html = '''
 '''
 
 
-def make_progress_html(number, text):
-    return progress_html.replace('*number*', str(number)).replace('*text*', text)
+def make_progress_html(number, text, params=None):
+    return progress_html.replace('*number*', str(number)).replace('*text*', escape(translate(text, params)))

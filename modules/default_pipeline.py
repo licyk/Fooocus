@@ -12,9 +12,14 @@ from extras.expansion import FooocusExpansion
 
 from ldm_patched.modules.model_base import SDXL, SDXLRefiner
 from modules.sample_hijack import clip_separate
-from modules.util import get_file_from_folder_list, get_enabled_loras
+from modules.util import get_file_from_folder_list
+from ldm_patched.modules.anima import AnimaModel
+from modules.anima import is_anima_file, resolve_vae
+from modules.anima_refiner import sample_with_vae_bridge
 
 
+# Generation tasks populate these caches with their selected models and LoRAs.
+# Importing the pipeline must leave weights unloaded until a task needs them.
 model_base = core.StableDiffusionModel()
 model_refiner = core.StableDiffusionModel()
 
@@ -24,6 +29,7 @@ final_clip = None
 final_vae = None
 final_refiner_unet = None
 final_refiner_vae = None
+final_refiner_clip = None
 
 loaded_ControlNets = {}
 
@@ -48,11 +54,13 @@ def refresh_controlnets(model_paths):
 def assert_model_integrity():
     error_message = None
 
-    if not isinstance(model_base.unet_with_lora.model, SDXL):
-        error_message = 'You have selected base model other than SDXL. This is not supported yet.'
+    if not isinstance(model_base.unet_with_lora.model, (SDXL, AnimaModel)):
+        error_message = 'Select an SDXL or Anima base model.'
 
     if error_message is not None:
         raise NotImplementedError(error_message)
+    if is_anima() and model_refiner.unet_with_lora is not None and not isinstance(model_refiner.unet_with_lora.model, AnimaModel):
+        raise ValueError('Anima base models require an Anima refiner or Refiner = None.')
 
     return True
 
@@ -67,6 +75,9 @@ def refresh_base_model(name, vae_name=None):
     vae_filename = None
     if vae_name is not None and vae_name != modules.flags.default_vae:
         vae_filename = get_file_from_folder_list(vae_name, modules.config.path_vae)
+
+    if is_anima_file(filename):
+        vae_filename = resolve_vae(vae_filename)
 
     if model_base.filename == filename and model_base.vae_filename == vae_filename:
         return
@@ -102,7 +113,7 @@ def refresh_refiner_model(name):
     elif isinstance(model_refiner.unet.model, SDXLRefiner):
         model_refiner.clip = None
         model_refiner.vae = None
-    else:
+    elif not isinstance(model_refiner.unet.model, AnimaModel):
         model_refiner.clip = None
 
     return
@@ -163,16 +174,12 @@ def clip_encode_single(clip, text, verbose=False):
 def clone_cond(conds):
     results = []
 
-    for c, p in conds:
-        p = p["pooled_output"]
-
-        if isinstance(c, torch.Tensor):
-            c = c.clone()
-
-        if isinstance(p, torch.Tensor):
-            p = p.clone()
-
-        results.append([c, {"pooled_output": p}])
+    for c, metadata in conds:
+        context = c.clone() if isinstance(c, torch.Tensor) else c
+        metadata = {key: clone_cond(value) if key == 'anima_refiner_conditioning' else
+                    value.clone() if isinstance(value, torch.Tensor) else value
+                    for key, value in metadata.items()}
+        results.append([context, metadata])
 
     return results
 
@@ -189,6 +196,10 @@ def clip_encode(texts, pool_top_k=1):
     if len(texts) == 0:
         return None
 
+    if is_anima():
+        result = clone_cond(final_clip.encode('\n'.join(texts)))
+        return add_refiner_conditioning(result, texts)
+
     cond_list = []
     pooled_acc = 0
 
@@ -198,7 +209,13 @@ def clip_encode(texts, pool_top_k=1):
         if i < pool_top_k:
             pooled_acc += pooled
 
-    return [[torch.cat(cond_list, dim=1), {"pooled_output": pooled_acc}]]
+    return add_refiner_conditioning([[torch.cat(cond_list, dim=1), {"pooled_output": pooled_acc}]], texts)
+
+
+def add_refiner_conditioning(conditioning, texts):
+    if final_refiner_clip is not None:
+        conditioning[0][1]['anima_refiner_conditioning'] = clone_cond(final_refiner_clip.encode('\n'.join(texts)))
+    return conditioning
 
 
 @torch.no_grad()
@@ -209,6 +226,9 @@ def set_clip_skip(clip_skip: int):
     if final_clip is None:
         return
 
+    if is_anima():
+        return
+
     final_clip.clip_layer(-abs(clip_skip))
     return
 
@@ -216,16 +236,24 @@ def set_clip_skip(clip_skip: int):
 @torch.inference_mode()
 def clear_all_caches():
     final_clip.fcs_cond_cache = {}
+    if final_refiner_clip is not None:
+        final_refiner_clip.fcs_cond_cache = {}
 
 
 @torch.no_grad()
 @torch.inference_mode()
 def prepare_text_encoder(async_call=True):
+    # Fast upscale and mask-only tasks can finish before any generation model is loaded.
+    if final_clip is None or final_expansion is None:
+        return
     if async_call:
         # TODO: make sure that this is always called in an async way so that users cannot feel it.
         pass
     assert_model_integrity()
-    ldm_patched.modules.model_management.load_models_gpu([final_clip.patcher, final_expansion.patcher])
+    encoders = [final_clip.patcher, final_expansion.patcher]
+    if final_refiner_clip is not None:
+        encoders.append(final_refiner_clip.patcher)
+    ldm_patched.modules.model_management.load_models_gpu(encoders)
     return
 
 
@@ -233,13 +261,18 @@ def prepare_text_encoder(async_call=True):
 @torch.inference_mode()
 def refresh_everything(refiner_model_name, base_model_name, loras,
                        base_model_additional_loras=None, use_synthetic_refiner=False, vae_name=None):
-    global final_unet, final_clip, final_vae, final_refiner_unet, final_refiner_vae, final_expansion
+    global final_unet, final_clip, final_vae, final_refiner_unet, final_refiner_vae, final_refiner_clip, final_expansion
 
     final_unet = None
     final_clip = None
     final_vae = None
     final_refiner_unet = None
     final_refiner_vae = None
+    final_refiner_clip = None
+
+    filename = get_file_from_folder_list(base_model_name, modules.config.paths_checkpoints)
+    if is_anima_file(filename):
+        use_synthetic_refiner = False
 
     if use_synthetic_refiner and refiner_model_name == 'None':
         print('Synthetic Refiner Activated')
@@ -258,6 +291,10 @@ def refresh_everything(refiner_model_name, base_model_name, loras,
 
     final_refiner_unet = model_refiner.unet_with_lora
     final_refiner_vae = model_refiner.vae
+    if final_refiner_unet is not None and isinstance(final_refiner_unet.model, AnimaModel):
+        final_refiner_clip = model_refiner.clip_with_lora
+        if is_anima():
+            final_refiner_vae = None
 
     if final_expansion is None:
         final_expansion = FooocusExpansion()
@@ -267,12 +304,9 @@ def refresh_everything(refiner_model_name, base_model_name, loras,
     return
 
 
-refresh_everything(
-    refiner_model_name=modules.config.default_refiner_model_name,
-    base_model_name=modules.config.default_base_model_name,
-    loras=get_enabled_loras(modules.config.default_loras),
-    vae_name=modules.config.default_vae,
-)
+def is_anima():
+    unet = model_base.unet_with_lora
+    return unet is not None and isinstance(unet.model, AnimaModel)
 
 
 @torch.no_grad()
@@ -280,6 +314,9 @@ refresh_everything(
 def vae_parse(latent):
     if final_refiner_vae is None:
         return latent
+    if isinstance(final_refiner_unet.model, AnimaModel):
+        pixels = core.decode_vae(final_vae, latent)
+        return core.encode_vae(final_refiner_vae, pixels)
 
     result = vae_interpose.parse(latent["samples"])
     return {'samples': result}
@@ -318,6 +355,8 @@ def calculate_sigmas(sampler, model, scheduler, steps, denoise):
 @torch.inference_mode()
 def get_candidate_vae(steps, switch, denoise=1.0, refiner_swap_method='joint'):
     assert refiner_swap_method in ['joint', 'separate', 'vae']
+    if final_refiner_unet is not None and isinstance(final_refiner_unet.model, AnimaModel):
+        return final_vae, final_refiner_vae
 
     if final_refiner_vae is not None and final_refiner_unet is not None:
         if denoise > 0.9:
@@ -338,8 +377,21 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
         = final_unet, final_vae, final_refiner_unet, final_refiner_vae, final_clip
 
     assert refiner_swap_method in ['joint', 'separate', 'vae']
+    anima_refiner = target_refiner_unet is not None and isinstance(target_refiner_unet.model, AnimaModel)
+    if anima_refiner:
+        from modules.anima import validate_sampling
+        validate_sampling(sampler_name, scheduler_name)
+        switch = max(0, min(steps, switch))
+    if is_anima() and target_refiner_unet is None:
+        refiner_swap_method = 'joint'
+    elif is_anima() and anima_refiner and switch <= 0 and refiner_swap_method != 'vae':
+        positive_cond = clip_separate(positive_cond, target_model=target_refiner_unet.model)
+        negative_cond = clip_separate(negative_cond, target_model=target_refiner_unet.model)
+        target_unet, target_vae = target_refiner_unet, model_refiner.vae
+        target_refiner_unet = None
+        refiner_swap_method = 'joint'
 
-    if final_refiner_vae is not None and final_refiner_unet is not None:
+    if not anima_refiner and final_refiner_vae is not None and final_refiner_unet is not None:
         # Refiner Use Different VAE (then it is SD15)
         if denoise > 0.9:
             refiner_swap_method = 'vae'
@@ -359,9 +411,23 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
     print(f'[Sampler] refiner_swap_method = {refiner_swap_method}')
 
     if latent is None:
-        initial_latent = core.generate_empty_latent(width=width, height=height, batch_size=1)
+        if is_anima():
+            initial_latent = {'samples': torch.zeros(1, 16, height // 8, width // 8)}
+        else:
+            initial_latent = core.generate_empty_latent(width=width, height=height, batch_size=1)
     else:
         initial_latent = latent
+
+    if anima_refiner and (not is_anima() or refiner_swap_method == 'vae'):
+        decoded = sample_with_vae_bridge(
+            base_model=target_unet, refiner_model=target_refiner_unet,
+            base_vae=target_vae, refiner_vae=model_refiner.vae,
+            positive=positive_cond, negative=negative_cond, latent=initial_latent,
+            steps=steps, switch=switch, seed=image_seed, callback=callback,
+            sampler_name=sampler_name, scheduler_name=scheduler_name,
+            cfg=cfg_scale, denoise=denoise, tiled=tiled, disable_preview=disable_preview,
+            refiner_sigmas=calculate_sigmas(sampler_name, target_refiner_unet.model, scheduler_name, steps, denoise))
+        return core.pytorch_to_numpy(decoded)
 
     minmax_sigmas = calculate_sigmas(sampler=sampler_name, scheduler=scheduler_name, model=final_unet.model, steps=steps, denoise=denoise)
     sigma_min, sigma_max = minmax_sigmas[minmax_sigmas > 0].min(), minmax_sigmas.max()
@@ -426,6 +492,7 @@ def process_diffusion(positive_cond, negative_cond, steps, switch, width, height
             negative=clip_separate(negative_cond, target_model=target_model.model, target_clip=target_clip),
             latent=sampled_latent,
             steps=steps, start_step=switch, last_step=steps, disable_noise=True, force_full_denoise=True,
+            resume=is_anima(),
             seed=image_seed,
             denoise=denoise,
             callback_function=callback,

@@ -58,7 +58,11 @@ function onAfterUiUpdate(callback) {
  * The callback receives no arguments.
  */
 function onUiLoaded(callback) {
-    uiLoadedCallbacks.push(callback);
+    if (executedOnLoaded) {
+        queueMicrotask(() => executeCallbacks([callback]));
+    } else {
+        uiLoadedCallbacks.push(callback);
+    }
 }
 
 /**
@@ -103,8 +107,8 @@ function scheduleAfterUiUpdateCallbacks() {
 
 var executedOnLoaded = false;
 
-document.addEventListener("DOMContentLoaded", function() {
-    var mutationObserver = new MutationObserver(function(m) {
+function initializeFooocusUI() {
+    function updateUI(m = []) {
         if (!executedOnLoaded && gradioApp().querySelector('#generate_button')) {
             executedOnLoaded = true;
             executeCallbacks(uiLoadedCallbacks);
@@ -117,10 +121,18 @@ document.addEventListener("DOMContentLoaded", function() {
             uiCurrentTab = newTab;
             executeCallbacks(uiTabChangeCallbacks);
         }
-    });
+    }
+    var mutationObserver = new MutationObserver(updateUI);
     mutationObserver.observe(gradioApp(), {childList: true, subtree: true});
     initStylePreviewOverlay();
-});
+    updateUI();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeFooocusUI, {once: true});
+} else {
+    initializeFooocusUI();
+}
 
 var onAppend = function(elem, f) {
     var observer = new MutationObserver(function(mutations) {

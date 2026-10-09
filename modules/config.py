@@ -8,6 +8,7 @@ import tempfile
 import modules.flags
 import modules.sdxl_styles
 
+from extras.wd14_tagger.models import DEFAULT_MODEL as DEFAULT_TAGGER_MODEL, MODELS as TAGGER_MODELS
 from modules.model_loader import load_file_from_url
 from modules.extra_utils import makedirs_with_log, get_files_from_folder, try_eval_env_var
 from modules.flags import OutputFormat, Performance, MetadataScheme
@@ -193,12 +194,15 @@ paths_loras = get_dir_or_set_default('path_loras', ['../models/loras/'], True)
 path_embeddings = get_dir_or_set_default('path_embeddings', '../models/embeddings/')
 path_vae_approx = get_dir_or_set_default('path_vae_approx', '../models/vae_approx/')
 path_vae = get_dir_or_set_default('path_vae', '../models/vae/')
+path_text_encoders = get_dir_or_set_default('path_text_encoders', '../models/text_encoders/')
 path_upscale_models = get_dir_or_set_default('path_upscale_models', '../models/upscale_models/')
 path_inpaint = get_dir_or_set_default('path_inpaint', '../models/inpaint/')
 path_controlnet = get_dir_or_set_default('path_controlnet', '../models/controlnet/')
 path_clip_vision = get_dir_or_set_default('path_clip_vision', '../models/clip_vision/')
 path_fooocus_expansion = get_dir_or_set_default('path_fooocus_expansion', '../models/prompt_expansion/fooocus_expansion')
 path_wildcards = get_dir_or_set_default('path_wildcards', '../wildcards/')
+path_tagcomplete = get_dir_or_set_default('path_tagcomplete', '../tags/')
+path_tagcomplete_cache = get_dir_or_set_default('path_tagcomplete_cache', '../cache/tagcomplete/', make_directory=True)
 path_safety_checker = get_dir_or_set_default('path_safety_checker', '../models/safety_checker/')
 path_sam = get_dir_or_set_default('path_sam', '../models/sam/')
 path_outputs = get_path_output()
@@ -265,6 +269,10 @@ temp_path_cleanup_on_launch = get_config_item_or_set_default(
     validator=lambda x: isinstance(x, bool),
     expected_type=bool
 )
+anima_text_encoder = get_config_item_or_set_default(
+    'anima_text_encoder', 'qwen_3_06b_base.safetensors', lambda x: isinstance(x, str), expected_type=str)
+anima_vae = get_config_item_or_set_default(
+    'anima_vae', 'qwen_image_vae.safetensors', lambda x: isinstance(x, str), expected_type=str)
 default_base_model_name = default_model = get_config_item_or_set_default(
     key='default_model',
     default_value='model.safetensors',
@@ -485,6 +493,12 @@ default_aspect_ratio = get_config_item_or_set_default(
     key='default_aspect_ratio',
     default_value='1152*896' if '1152*896' in available_aspect_ratios else available_aspect_ratios[0],
     validator=lambda x: x in available_aspect_ratios,
+    expected_type=str
+)
+default_inpaint_backend = get_config_item_or_set_default(
+    key='default_inpaint_backend',
+    default_value='standard',
+    validator=lambda x: x in ['standard', 'fooocus'],
     expected_type=str
 )
 default_inpaint_engine_version = get_config_item_or_set_default(
@@ -719,6 +733,13 @@ default_describe_content_type = get_config_item_or_set_default(
     expected_type=list
 )
 
+default_describe_tagger_model = get_config_item_or_set_default(
+    key='default_describe_tagger_model',
+    default_value=DEFAULT_TAGGER_MODEL,
+    validator=lambda x: x in TAGGER_MODELS,
+    expected_type=str
+)
+
 config_dict["default_loras"] = default_loras = default_loras[:default_max_lora_number] + [[True, 'None', 1.0] for _ in range(default_max_lora_number - len(default_loras))]
 
 # mapping config to meta parameter
@@ -768,7 +789,7 @@ def add_ratio(x):
     a, b = x.replace('*', ' ').split(' ')[:2]
     a, b = int(a), int(b)
     g = math.gcd(a, b)
-    return f'{a}×{b} <span style="color: grey;"> \U00002223 {a // g}:{b // g}</span>'
+    return f'{a}×{b} \U00002223 {a // g}:{b // g}'
 
 
 default_aspect_ratio = add_ratio(default_aspect_ratio)

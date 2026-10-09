@@ -1,0 +1,502 @@
+[
+  {
+    "version": "5179da83c7a6ba688f924f0c81cb775d5695a414",
+    "date": "2026-08-26T13:52:08+08:00",
+    "message": "Fix backend API startup race"
+  },
+  {
+    "version": "7942b4dd362f8e99188bd3d45ef71f8082e99d7f",
+    "date": "2026-02-17T12:06:39+08:00",
+    "message": "fix error on forge classic"
+  },
+  {
+    "version": "596a931725209a9ee271e6a2bd6d95a1cdb33778",
+    "date": "2025-11-26T20:12:09+08:00",
+    "message": "Merge pull request #369 from neon-aiart/fix/token-counter-v4"
+  },
+  {
+    "version": "88be6531e8c7cc29d8d8436912b1014a71500960",
+    "date": "2025-11-26T16:22:35+09:00",
+    "message": "Fix: Use try-except to stabilize token counter during model access"
+  },
+  {
+    "version": "077daf3f6e0f8dcf720206df4003160e3787417a",
+    "date": "2025-11-26T02:07:14+09:00",
+    "message": "FIX: Prevent critical TypeError in token counter with robust null check (v4)"
+  },
+  {
+    "version": "1b2cce5433fc992dbf29b99ad106e20945f020fd",
+    "date": "2025-11-15T22:58:33+08:00",
+    "message": "Merge pull request #368 from neon-aiart/fix/token-counter-nonetype"
+  },
+  {
+    "version": "b49e275eb0fa41c121ca56ca49ac3799503378e7",
+    "date": "2025-11-15T23:52:24+09:00",
+    "message": "FIX: Prevent TypeError in token counter during model switching (v2)"
+  },
+  {
+    "version": "6a4fb7015b47acb1a7db0a68343558d0143098ce",
+    "date": "2025-11-10T09:44:38+08:00",
+    "message": "Merge pull request #366 from neon-aiart/main"
+  },
+  {
+    "version": "fea3070a40570499d186552c7b0dcea671f044e1",
+    "date": "2025-11-10T02:49:34+09:00",
+    "message": "FIX: Prevent TypeError: NoneType on model switching in token counter"
+  },
+  {
+    "version": "0aa3c04de431c41e4fd149ff83be23593c5c2d4c",
+    "date": "2025-11-10T02:44:22+09:00",
+    "message": "Update get_token_counter.py"
+  },
+  {
+    "version": "8bf3dbad47c15f52dc35d6f62734a58a1d8f191f",
+    "date": "2025-11-10T02:29:18+09:00",
+    "message": "FIX: Safely handle None model data during model switching to prevent TypeError in token counter"
+  },
+  {
+    "version": "d7865901ec7d2aff0a46276bff017498adbec835",
+    "date": "2025-11-10T02:28:05+09:00",
+    "message": "Update get_token_counter.py"
+  },
+  {
+    "version": "9e1ced64388d6fa979da3ffc174b7d0837d2f86f",
+    "date": "2025-11-04T03:14:14+09:00",
+    "message": "Fix: Prevent TypeError: 'NoneType' is not iterable on model switching (Forge/reForge)"
+  },
+  {
+    "version": "b00149b4c7fbfc9e4b8dcd02125f157b1d105dde",
+    "date": "2025-05-12T09:40:10+08:00",
+    "message": "Merge pull request #362 from KevinX25/patch-1"
+  },
+  {
+    "version": "376deb20b1d68820c7e49022a2418e133ca4bb89",
+    "date": "2025-05-11T17:38:07-05:00",
+    "message": "Create Leticia service"
+  },
+  {
+    "version": "ff8511b5dd4a112999c0a7e9c747a568a3ece9dc",
+    "date": "2025-04-20T00:06:58+08:00",
+    "message": "Merge pull request #360 from ubansi/fix_japanease_tag_name"
+  },
+  {
+    "version": "985477854b21f3cb63decdfff1b9b5610a554f80",
+    "date": "2025-04-19T02:57:03+09:00",
+    "message": "Fix: Translated some Chinese text to Japanese"
+  },
+  {
+    "version": "21654832ef1220637c77bb5dabb8174cf26ac685",
+    "date": "2024-12-14T20:30:33+08:00",
+    "message": "Merge branch 'main' of https://github.com/Physton/sd-webui-prompt-all-in-one"
+  },
+  {
+    "version": "d84a3353ed11c18be42b7d636f773e23ce1a7dff",
+    "date": "2024-12-14T20:30:19+08:00",
+    "message": "Update README.MD"
+  },
+  {
+    "version": "c63b8a043f31331de048d4a0bd99264ea04c5477",
+    "date": "2024-12-14T20:18:45+08:00",
+    "message": "Merge pull request #355 from PTCMode/main"
+  },
+  {
+    "version": "29387173152539a609bc6a5d8cf960bcc9b2ddad",
+    "date": "2024-12-14T01:54:16+08:00",
+    "message": "[fix] 修复一个由于遗留锁导致UI加载可能会失败的问题"
+  },
+  {
+    "version": "31fef02d6b942d484ed6ea6ad45b7a9ca9991b6a",
+    "date": "2024-12-14T01:51:09+08:00",
+    "message": "[fix] 添加一个临时解决firefox下提示词显示问题的样式方案"
+  },
+  {
+    "version": "d69645e6a6701c5117e0a874d1ef80d5cb5d55cc",
+    "date": "2024-06-10T14:32:44+08:00",
+    "message": "build"
+  },
+  {
+    "version": "7bd3a0940af0de676b522e3bf432fbfdbaef0e1d",
+    "date": "2024-06-10T14:31:53+08:00",
+    "message": "Merge pull request #337 from bluelovers/pr/getFavorites-001"
+  },
+  {
+    "version": "bad38d50500fcabdf71809095cc59316a511c049",
+    "date": "2024-06-09T08:06:20+08:00",
+    "message": "."
+  },
+  {
+    "version": "f304c5eb844e7df87d89708888391a3c6913561a",
+    "date": "2024-06-06T17:43:11+08:00",
+    "message": "refactor: try avoid request api at same time"
+  },
+  {
+    "version": "9a2a366e65cb33a7fe3b96240349d4471c265a06",
+    "date": "2024-06-06T09:47:52+08:00",
+    "message": "chore: try getFavorites one by one"
+  },
+  {
+    "version": "d806005dadd29fe3b51b8db1c95e3f00f368b960",
+    "date": "2024-06-04T23:43:10+08:00",
+    "message": "build"
+  },
+  {
+    "version": "b5021f402c633d5826afc2e6ce938cc4340d8359",
+    "date": "2024-06-04T23:41:45+08:00",
+    "message": "Merge pull request #336 from bluelovers/patch-4"
+  },
+  {
+    "version": "b4e04c853f2b32d545b99bae758725cd4cb860fb",
+    "date": "2024-06-04T17:53:49+08:00",
+    "message": "chore: use async avoid block other onUiLoaded cb"
+  },
+  {
+    "version": "f00a3f56ba499e8be6e498f7206ecea7fef055e5",
+    "date": "2024-05-22T00:57:50+08:00",
+    "message": "Update README.MD"
+  },
+  {
+    "version": "eb924ba5a192da23cc88334677f3ad63edc7fe3e",
+    "date": "2024-04-10T12:34:00+08:00",
+    "message": "#325 [Bug] \"Facing away\" is repeated"
+  },
+  {
+    "version": "2cd8bf2c6c0e975a71f9c09b6d03383c3acbe5c9",
+    "date": "2024-03-28T23:38:57+08:00",
+    "message": "Update Translators => 5.9.0"
+  },
+  {
+    "version": "6f7438cc85ffaa5417d75900b84a41ff7ed38bc9",
+    "date": "2024-03-28T23:15:56+08:00",
+    "message": "Optimize the pop-up window interaction"
+  },
+  {
+    "version": "82b358dfd8f698b905ee425360c90759fb4daf76",
+    "date": "2024-03-27T18:13:11+08:00",
+    "message": "[Bug] Fix some bugs in the keyword blacklist"
+  },
+  {
+    "version": "993bca48cca8006b4c3d5818c3ae017fd906c05b",
+    "date": "2024-03-27T18:00:56+08:00",
+    "message": "Update README_CN.MD"
+  },
+  {
+    "version": "a52c5dfbda8516f09e1219aa22625d82e4eb15d2",
+    "date": "2024-03-27T17:47:19+08:00",
+    "message": "#312 [Bug] Fix the issue where the pop-up window cannot be fully displayed on low-resolution screens"
+  },
+  {
+    "version": "e1869b207abeda97c5e5985182fe8532607bea45",
+    "date": "2024-03-26T17:00:14+08:00",
+    "message": "#317 [Bug] lost separators in prompt"
+  },
+  {
+    "version": "3ebc82c1cb31c3d562c4bad99c1585f99dd31a91",
+    "date": "2024-03-24T15:33:11+08:00",
+    "message": "#306 #316 [Feature] Allow customization of ChatGPT model"
+  },
+  {
+    "version": "2a32817694036517d9a05ed9b2048d2fbe2f5f26",
+    "date": "2024-03-22T17:22:33+08:00",
+    "message": "Update build.yml"
+  },
+  {
+    "version": "47556e3f9cd118a5616de56b9a2d1f0b4de5f2af",
+    "date": "2024-03-22T17:21:57+08:00",
+    "message": "Update build.yml"
+  },
+  {
+    "version": "805dc41561270dff1e3dde96fc385a7bd9ae4612",
+    "date": "2024-03-22T17:21:27+08:00",
+    "message": "build"
+  },
+  {
+    "version": "9a888b415dc2cd4d499eebb1beda4083e01e1809",
+    "date": "2024-03-22T09:19:09+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "5fb24f4c690cee08cdb406f779b9d37bbe487052",
+    "date": "2024-03-22T17:18:37+08:00",
+    "message": "Update groupTagsMixin.js"
+  },
+  {
+    "version": "90bc20f3c3bb73b6140f96d2f4b466221f2f684d",
+    "date": "2024-03-13T11:41:58+08:00",
+    "message": "Merge pull request #309 from thiagojramos/main"
+  },
+  {
+    "version": "b6731ab13fcd262b4206cd49867cc3ac324ba885",
+    "date": "2024-03-12T20:34:14-03:00",
+    "message": "Update i18n.json"
+  },
+  {
+    "version": "62178a299f9fcc42f3607317922dded1d315a440",
+    "date": "2024-03-10T15:35:07+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "8a829426d6393b3249c55fd889ec3a56f6645abf",
+    "date": "2024-03-10T23:34:40+08:00",
+    "message": "Merge pull request #308 from yangming915/main"
+  },
+  {
+    "version": "90d05207ec656fd52fc7f7379f521502440e29a7",
+    "date": "2024-03-10T03:16:37+08:00",
+    "message": "let it work better with extranetwork-lora"
+  },
+  {
+    "version": "d0eb9c5b7d37bd1f885e9a4ef2f88804c1c4e31e",
+    "date": "2024-02-16T09:56:20+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "031fd28372e850552f0ab08be5371444b36df841",
+    "date": "2024-02-16T17:55:53+08:00",
+    "message": "#303 [Bug] Extra Networks not loading Checkpoints in subfolders"
+  },
+  {
+    "version": "827f2ab54d12c1f9a80eb40554f6ea55d8965f42",
+    "date": "2024-02-16T09:14:55+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "ece97bef9c62a3bdc7b4391442248062bd62049f",
+    "date": "2024-02-16T17:14:26+08:00",
+    "message": "#302 [Feature] Refresh for Extra Networks"
+  },
+  {
+    "version": "62e7040cb96c5d020e07d76d8c08c0d73701499d",
+    "date": "2024-02-14T14:48:07+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "dee59273eb3c48143c6234a8ee4250febc61aa77",
+    "date": "2024-02-14T22:47:06+08:00",
+    "message": "#290 #300 New feature: Whether to automatically load web UI prompts"
+  },
+  {
+    "version": "7520247ad50109a7b060248017d1af410ef0c306",
+    "date": "2024-02-14T13:42:07+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "7effa24cd9f68d9d1d3215a7c9772c0ee263a549",
+    "date": "2024-02-14T21:41:36+08:00",
+    "message": "#300 [Bug] Fixed the issue of removing the last comma from the Prompt"
+  },
+  {
+    "version": "b5044c5711db118a6e5534c7e548198227414737",
+    "date": "2024-02-14T21:24:31+08:00",
+    "message": "Build"
+  },
+  {
+    "version": "736052bd517321489f883cb96ed424ca9fba9b03",
+    "date": "2024-02-14T21:20:19+08:00",
+    "message": "Merge pull request #301 from serick4126/forge_support"
+  },
+  {
+    "version": "8a41850bff2a86b681a9bf9c54f6154a8e423991",
+    "date": "2024-02-14T13:42:13+09:00",
+    "message": "Add cond_stage_model to get_prompt_lengths argument only when using forge"
+  },
+  {
+    "version": "22483d8d2b97f26fe112fb69c60dafdff0700a1d",
+    "date": "2024-02-13T10:23:22+08:00",
+    "message": "#298 [Bug] Remove the keyword \"multiple girls\""
+  },
+  {
+    "version": "b35ee8e1d3e52d1c800c867aff440032fd58abe4",
+    "date": "2024-01-29T10:12:20+08:00",
+    "message": "Merge pull request #296 from Kennytian/patch-2"
+  },
+  {
+    "version": "4457b64368f661925b1808c2266e8f735becdd66",
+    "date": "2024-01-29T10:10:57+08:00",
+    "message": "Merge pull request #292 from marcushsu/patch-1"
+  },
+  {
+    "version": "7983981fa13102f02b573dcac4bc07a3ee0f1bf7",
+    "date": "2024-01-29T09:59:14+08:00",
+    "message": "Update zh_CN.yaml"
+  },
+  {
+    "version": "ac35a1ed8ae3ac02b6b1a6240ce486e01cfd7da7",
+    "date": "2024-01-14T10:42:08+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "3986ce2aff0662fd0a141e962a016492c157049a",
+    "date": "2024-01-14T18:41:38+08:00",
+    "message": "#293 [Bug] Fix the issue where parsing errors occur due to emojis in prompts"
+  },
+  {
+    "version": "6812a3f488a2509a6f46e62eb735755f293e4da1",
+    "date": "2024-01-09T07:41:56+08:00",
+    "message": "Update zh_TW.yaml"
+  },
+  {
+    "version": "658ae82218a3bb1e15df12fd6a372c7bdf0f4fe3",
+    "date": "2023-12-24T14:31:14+08:00",
+    "message": "#287 [Extension Style] Remove the \"Show/Hide default input box\" checkbox"
+  },
+  {
+    "version": "4462467aede58b492335b021f87c29108cecc2e8",
+    "date": "2023-12-18T08:42:13+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "4c9f336bda3b110a3e3c71e6cccb7663ec5db412",
+    "date": "2023-12-18T16:41:43+08:00",
+    "message": "#286 fix bug"
+  },
+  {
+    "version": "d7d7f0af331fc40fbf0d6a716592be1a03460297",
+    "date": "2023-12-12T09:49:38+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "0a4f5f9fb10ea9b78146b7c5baad0d8b4807276e",
+    "date": "2023-12-12T17:49:05+08:00",
+    "message": "#285 [Bug] Doesn't display subfolders in Extra Network tab (Lora)"
+  },
+  {
+    "version": "9465ea43f66676b04b1ecd9bb1b2d20590addad6",
+    "date": "2023-12-10T11:50:23+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "8b0beeb2de5173f3b93cfc8748fd17602778c4c1",
+    "date": "2023-12-10T19:49:48+08:00",
+    "message": "#283 [Feature] Prompt format: WhethDisable the automatic comma before line breaks"
+  },
+  {
+    "version": "07b3515ee5b8afbb96cc87e6c2fe1b970d55f5a8",
+    "date": "2023-12-01T01:35:51+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "167f4d52b3c743d5f72c1c2d1ab0ce2f3122e5a5",
+    "date": "2023-12-01T09:35:22+08:00",
+    "message": "#277 [Feature] Support more Lora formats"
+  },
+  {
+    "version": "6c84d7e7765c094b957f6db5a8d3bf38d8c622c6",
+    "date": "2023-11-27T16:59:22+08:00",
+    "message": "Update the list of OpenAI models"
+  },
+  {
+    "version": "48cf8eb793f020af573e36408ab6e9c9c3597a26",
+    "date": "2023-11-27T16:55:33+08:00",
+    "message": "#276 [Bug] Fixing the issue of OpenAI not running"
+  },
+  {
+    "version": "459581d95c0b6e87316e0fbf0584e09701c1388c",
+    "date": "2023-11-26T12:15:32+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "e0c89b3a515017210345c3ae99f2ca3e21e2aea1",
+    "date": "2023-11-26T20:14:43+08:00",
+    "message": "#272 [Feature] Prompt format: Whether to use NovelAI's weight symbol"
+  },
+  {
+    "version": "6e4f3cd2cb8421e045224704b05bd3818c74a1a8",
+    "date": "2023-11-26T18:22:09+08:00",
+    "message": "Update csv.py"
+  },
+  {
+    "version": "627a7418bc873c31ed37bc0543f4c4629bb77e5f",
+    "date": "2023-11-10T13:23:05+08:00",
+    "message": "Update README.MD"
+  },
+  {
+    "version": "3de706196f141bc8c2d329be436287af35a7d58a",
+    "date": "2023-11-09T12:18:25+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "c3935b7df533a62fec888be22c50c68d3cc69348",
+    "date": "2023-11-09T20:17:48+08:00",
+    "message": "[Feature] Prompt format: Whether to remove commas around Lora #263"
+  },
+  {
+    "version": "115683cd23a9988c17f308c1bb8fff44d1ef604f",
+    "date": "2023-11-08T21:08:19+08:00",
+    "message": "Update README.MD"
+  },
+  {
+    "version": "f74866a37e82c6343d15e0b21e74d1f398639838",
+    "date": "2023-11-07T15:10:52+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "7c5160a9bed1493910c3ab616599ddeafe823d59",
+    "date": "2023-11-07T23:10:07+08:00",
+    "message": "#264 Reverse the order of the favorite list."
+  },
+  {
+    "version": "2503070b8cb5d0db4a7cf20526168287d68a9ac1",
+    "date": "2023-11-07T22:58:14+08:00",
+    "message": "Update README.MD"
+  },
+  {
+    "version": "9391bdb3d9d9a02103caa2fb82d107fc910659f8",
+    "date": "2023-11-07T03:14:06+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "a61ad490a2e84c1a37bd7a0334a43adcc44531da",
+    "date": "2023-11-07T11:13:28+08:00",
+    "message": "update"
+  },
+  {
+    "version": "e452a9fe3113c7d2119ca6a9dd193693da94492a",
+    "date": "2023-10-31T08:22:32+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "63f0c23640d1f7d20bbed206f12135ddc7ffd861",
+    "date": "2023-10-31T16:21:45+08:00",
+    "message": "#256 Sort Favorites option"
+  },
+  {
+    "version": "59bb040e914cb65a815c1daefea1679d9c976eda",
+    "date": "2023-10-31T07:33:52+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "d8732467d20909114de85525d39a1bd0bc2f7c00",
+    "date": "2023-10-31T15:33:14+08:00",
+    "message": "#259 No Commas Before BREAK"
+  },
+  {
+    "version": "d804c98a76af8482fb0e6ab51c3d3bbd8f8d1fb7",
+    "date": "2023-10-31T15:23:11+08:00",
+    "message": "fix bug #250"
+  },
+  {
+    "version": "fa3c83c6eba1422dbe94b3ff75f960afe99aa77e",
+    "date": "2023-10-17T02:23:34+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "f26be1f7e403b892dddaf4870fc61882621ccd5a",
+    "date": "2023-10-17T10:22:55+08:00",
+    "message": "fix bug #255"
+  },
+  {
+    "version": "c07aab2fa245e7d833e037a8068a5c74b7e57c13",
+    "date": "2023-10-13T02:16:18+00:00",
+    "message": "Build"
+  },
+  {
+    "version": "0833f939e229b4b0a000111cb40f71e2c958a33e",
+    "date": "2023-10-13T10:15:31+08:00",
+    "message": "fix bug #253 #254"
+  },
+  {
+    "version": "6e06fb051ab67cd587a9961132c37047b5e6d06d",
+    "date": "2023-09-27T00:45:38+08:00",
+    "message": "fix bug"
+  }
+]

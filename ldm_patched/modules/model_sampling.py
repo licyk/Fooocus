@@ -29,6 +29,43 @@ class V_PREDICTION(EPS):
         sigma = sigma.view(sigma.shape[:1] + (1,) * (model_output.ndim - 1))
         return model_input * self.sigma_data ** 2 / (sigma ** 2 + self.sigma_data ** 2) - model_output * sigma * self.sigma_data / (sigma ** 2 + self.sigma_data ** 2) ** 0.5
 
+
+class ModelSamplingDiscreteFlow(torch.nn.Module):
+    def __init__(self, model_config=None):
+        super().__init__()
+        settings = model_config.sampling_settings if model_config is not None else {}
+        self.shift = settings.get('shift', 3.0)
+        self.register_buffer('sigmas', self.sigma(torch.arange(1, 1001) / 1000))
+
+    @property
+    def sigma_min(self):
+        return self.sigmas[0]
+
+    @property
+    def sigma_max(self):
+        return self.sigmas[-1]
+
+    def timestep(self, sigma):
+        return sigma
+
+    def sigma(self, timestep):
+        return self.shift * timestep / (1 + (self.shift - 1) * timestep)
+
+    def percent_to_sigma(self, percent):
+        return self.sigma(1.0 - max(0.0, min(1.0, percent)))
+
+    def calculate_input(self, sigma, noise):
+        return noise
+
+    def calculate_denoised(self, sigma, model_output, model_input):
+        sigma = sigma.reshape(sigma.shape[:1] + (1,) * (model_input.ndim - 1))
+        return model_input - sigma * model_output
+
+    def noise_scaling(self, sigma, noise, latent_image, max_denoise=False):
+        if isinstance(sigma, torch.Tensor) and sigma.ndim > 0:
+            sigma = sigma.reshape(sigma.shape[:1] + (1,) * (noise.ndim - 1))
+        return sigma * noise + (1.0 - sigma) * latent_image
+
 class EDM(V_PREDICTION):
     def calculate_denoised(self, sigma, model_output, model_input):
         sigma = sigma.view(sigma.shape[:1] + (1,) * (model_output.ndim - 1))

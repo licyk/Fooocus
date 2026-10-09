@@ -31,6 +31,10 @@ def match_lora(lora, to_load):
             A_name = transformers_lora
             B_name ="{}.lora_linear_layer.down.weight".format(x)
             mid_name = None
+        elif '{}.lora_B.weight'.format(x) in lora:
+            A_name = '{}.lora_B.weight'.format(x)
+            B_name = '{}.lora_A.weight'.format(x)
+            mid_name = None
 
         if A_name is not None:
             mid = None

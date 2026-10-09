@@ -1,0 +1,8 @@
+/* Fooocus host adjustments; the editor and dialogs use the copied upstream styles. */
+.pai-host {width: 100%; min-width: 0; isolation: isolate;}
+.pai-host .physton-prompt {width: 100%; min-width: 0; margin: 6px 0;}
+.pai-native-hidden > :not(.pai-host) {display: none !important;}
+#physton-prompt-all-in-one .physton-prompt {max-width: 100%;}
+.pai-host .prompt-tag-append input, .pai-host .prompt-tag-append textarea {min-width: 0;}
+.physton-prompt-extra-networks-popup {z-index: 10001;}
+.pai-host .extra-network-preview {object-fit: cover;}

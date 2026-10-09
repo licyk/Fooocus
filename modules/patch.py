@@ -224,6 +224,9 @@ def compute_cfg(uncond, cond, cfg_scale, t):
 
 
 def patched_sampling_function(model, x, timestep, uncond, cond, cond_scale, model_options=None, seed=None):
+    if model.model_type == ldm_patched.modules.model_base.ModelType.FLOW:
+        positive, negative = calc_cond_uncond_batch(model, cond, None if cond_scale == 1.0 else uncond, x, timestep, model_options)
+        return positive if cond_scale == 1.0 else negative + (positive - negative) * cond_scale
     pid = os.getpid()
 
     if math.isclose(cond_scale, 1.0) and not model_options.get("disable_cfg1_optimization", False):
@@ -295,19 +298,28 @@ def sdxl_encode_adm_patched(self, **kwargs):
 
 
 def patched_KSamplerX0Inpaint_forward(self, x, sigma, uncond, cond, cond_scale, denoise_mask, model_options={}, seed=None):
+    if getattr(inpaint_worker.current_task, 'is_model_free', False):
+        return inpaint_worker.current_task.sample(self, x, sigma, cond=cond, uncond=uncond,
+                                                 cond_scale=cond_scale, model_options=model_options, seed=seed)
+    flow_mask = (self.inner_model.inner_model.model_type == ldm_patched.modules.model_base.ModelType.FLOW
+                 and denoise_mask is not None)
     if inpaint_worker.current_task is not None:
         latent_processor = self.inner_model.inner_model.process_latent_in
         inpaint_latent = latent_processor(inpaint_worker.current_task.latent).to(x)
         inpaint_mask = inpaint_worker.current_task.latent_mask.to(x)
+    elif flow_mask:
+        inpaint_latent = self.latent_image.to(x)
+        inpaint_mask = denoise_mask.to(x)
 
+    if inpaint_worker.current_task is not None or flow_mask:
         if getattr(self, 'energy_generator', None) is None:
             # avoid bad results by using different seeds.
             self.energy_generator = torch.Generator(device='cpu').manual_seed((seed + 1) % constants.MAX_SEED)
 
         energy_sigma = sigma.reshape([sigma.shape[0]] + [1] * (len(x.shape) - 1))
-        current_energy = torch.randn(
-            x.size(), dtype=x.dtype, generator=self.energy_generator, device="cpu").to(x) * energy_sigma
-        x = x * inpaint_mask + (inpaint_latent + current_energy) * (1.0 - inpaint_mask)
+        noise = torch.randn(x.size(), dtype=x.dtype, generator=self.energy_generator, device="cpu").to(x)
+        current_energy = self.inner_model.inner_model.model_sampling.noise_scaling(energy_sigma, noise, inpaint_latent)
+        x = x * inpaint_mask + current_energy * (1.0 - inpaint_mask)
 
         out = self.inner_model(x, sigma,
                                cond=cond,

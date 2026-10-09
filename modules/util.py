@@ -362,6 +362,13 @@ def is_json(data: str) -> bool:
 
 
 def get_filname_by_stem(lora_name, filenames: List[str]) -> str | None:
+    normalized = lora_name.replace('\\', '/')
+    if '..' in normalized.split('/') or normalized.startswith('/'):
+        return None
+    for filename in filenames:
+        path = Path(filename)
+        if normalized in (path.as_posix(), path.with_suffix('').as_posix()):
+            return filename
     for filename in filenames:
         path = Path(filename)
         if lora_name == path.stem:
@@ -467,16 +474,24 @@ def cleanup_prompt(prompt):
 
 def apply_wildcards(wildcard_text, rng, i, read_wildcards_in_order) -> str:
     for _ in range(modules.config.wildcards_max_bfs_depth):
-        placeholders = re.findall(r'__([\w-]+)__', wildcard_text)
+        # Stop at each closing delimiter, preserving a trailing filename underscore.
+        placeholders = re.findall(r'__((?:(?!__(?!_))[\w .()-])+(?:/(?:(?!__(?!_))[\w .()-])+)*)__(?!_)', wildcard_text)
         if len(placeholders) == 0:
             return wildcard_text
 
         print(f'[Wildcards] processing: {wildcard_text}')
         for placeholder in placeholders:
             try:
-                matches = [x for x in modules.config.wildcard_filenames if os.path.splitext(os.path.basename(x))[0] == placeholder]
-                words = open(os.path.join(modules.config.path_wildcards, matches[0]), encoding='utf-8').read().splitlines()
-                words = [x for x in words if x != '']
+                matches = [x for x in modules.config.wildcard_filenames
+                           if Path(x).with_suffix('').as_posix() == placeholder]
+                if not matches and '/' not in placeholder:
+                    matches = [x for x in modules.config.wildcard_filenames if Path(x).stem == placeholder]
+                wildcard_root = Path(modules.config.path_wildcards).resolve()
+                wildcard_file = (wildcard_root / matches[0]).resolve()
+                if not wildcard_file.is_relative_to(wildcard_root):
+                    raise ValueError('Wildcard outside configured directory')
+                words = wildcard_file.read_text(encoding='utf-8').splitlines()
+                words = [x for x in words if x.strip() and not x.lstrip().startswith('#')]
                 assert len(words) > 0
                 if read_wildcards_in_order:
                     wildcard_text = wildcard_text.replace(f'__{placeholder}__', words[i % len(words)], 1)

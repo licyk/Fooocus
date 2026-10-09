@@ -1,98 +1,168 @@
-# https://huggingface.co/spaces/SmilingWolf/wd-v1-4-tags
-# https://github.com/pythongosssss/ComfyUI-WD14-Tagger/blob/main/wd14tagger.py
+"""All WD14 extension taggers, with a bounded, thread-safe ONNX session cache."""
 
-# {
-#     "wd-v1-4-moat-tagger-v2": "https://huggingface.co/SmilingWolf/wd-v1-4-moat-tagger-v2",
-#     "wd-v1-4-convnextv2-tagger-v2": "https://huggingface.co/SmilingWolf/wd-v1-4-convnextv2-tagger-v2",
-#     "wd-v1-4-convnext-tagger-v2": "https://huggingface.co/SmilingWolf/wd-v1-4-convnext-tagger-v2",
-#     "wd-v1-4-convnext-tagger": "https://huggingface.co/SmilingWolf/wd-v1-4-convnext-tagger",
-#     "wd-v1-4-vit-tagger-v2": "https://huggingface.co/SmilingWolf/wd-v1-4-vit-tagger-v2"
-# }
-
+import threading
 
 import numpy as np
-import csv
 import onnxruntime as ort
-
 from PIL import Image
-from onnxruntime import InferenceSession
-from modules.config import path_clip_vision
-from modules.model_loader import load_file_from_url
+
+from extras.wd14_tagger.interrogator import Interrogator
+from extras.wd14_tagger.models import DEFAULT_MODEL, MODELS
+
+KAOMOJI = "0_0, (o)_(o), +_+, +_-, ._., <o>_<o>, <|>_<|>, =_=, >_<, 3_3, 6_9, >_o, @_@, ^_^, o_o, u_u, x_x, |_|, ||_||"
+CATEGORIES = [
+    ("General tags", "general"),
+    ("Character tags", "character"),
+    ("Copyright tags", "copyright"),
+    ("Artist tags", "artist"),
+    ("Meta tags", "meta"),
+    ("Quality tags", "quality"),
+    ("Model tags", "model"),
+]
+DEFAULTS = {
+    "model_name": DEFAULT_MODEL,
+    "threshold": 0.35,
+    "character_threshold": 0.85,
+    "categories": [value for _, value in CATEGORIES],
+    "additional_tags": "",
+    "exclude_tags": "",
+    "sort_by_alphabetical_order": False,
+    "add_confident_as_weight": False,
+    "replace_underscore": True,
+    "replace_underscore_excludes": KAOMOJI,
+    "escape_tag": True,
+    "use_cpu": False,
+    "unload_model_after_running": False,
+    "show_confidence": False,
+}
 
 
-global_model = None
-global_csv = None
+def split_str(value):
+    return [tag.strip() for tag in value.split(",") if tag.strip()]
 
 
-def default_interrogator(image_rgb, threshold=0.35, character_threshold=0.85, exclude_tags=""):
-    global global_model, global_csv
+def execution_providers(use_cpu):
+    from args_manager import args
 
-    model_name = "wd-v1-4-moat-tagger-v2"
+    if use_cpu or args.always_cpu:
+        return ["CPUExecutionProvider"]
+    available = ort.get_available_providers()
+    providers = [
+        name
+        for name in (
+            "CUDAExecutionProvider",
+            "ROCMExecutionProvider",
+            "DmlExecutionProvider",
+            "CoreMLExecutionProvider",
+        )
+        if name in available
+    ]
+    if args.gpu_device_id is not None:
+        providers = [
+            (name, {"device_id": args.gpu_device_id})
+            if name
+            in (
+                "CUDAExecutionProvider",
+                "ROCMExecutionProvider",
+                "DmlExecutionProvider",
+            )
+            else name
+            for name in providers
+        ]
+    return providers + ["CPUExecutionProvider"]
 
-    model_onnx_filename = load_file_from_url(
-        url=f'https://huggingface.co/lllyasviel/misc/resolve/main/{model_name}.onnx',
-        model_dir=path_clip_vision,
-        file_name=f'{model_name}.onnx',
+
+class TaggerManager:
+    def __init__(self):
+        self.lock = threading.RLock()
+        self.key = None
+        self.tagger = None
+
+    def unload(self):
+        with self.lock:
+            if self.tagger is not None:
+                self.tagger.unload()
+            self.tagger = self.key = None
+
+    def interrogate(
+        self, image, model_name, use_cpu=False, unload_model_after_running=False
+    ):
+        if model_name not in MODELS:
+            raise ValueError(f"Unknown tagger model: {model_name}")
+        if not isinstance(image, Image.Image):
+            image = Image.fromarray(np.asarray(image, dtype=np.uint8))
+        providers = execution_providers(use_cpu)
+        key = (model_name, repr(providers))
+        with self.lock:
+            if key != self.key:
+                self.unload()
+                from extras.wd14_tagger.cl import CLTaggerInterrogator
+                from extras.wd14_tagger.wd14 import WaifuDiffusionInterrogator
+                from modules.config import path_clip_vision
+
+                spec = MODELS[model_name]
+                cls = (
+                    CLTaggerInterrogator
+                    if spec["kind"] == "cl"
+                    else WaifuDiffusionInterrogator
+                )
+                self.tagger = cls(model_name, spec, path_clip_vision, providers)
+                self.key = key
+            try:
+                ratings, tags = self.tagger.interrogate(image)
+                return ratings, tags, self.tagger.categories()
+            except Exception:
+                self.unload()
+                raise
+            finally:
+                if unload_model_after_running:
+                    self.unload()
+
+
+manager = TaggerManager()
+
+
+def interrogate_image(image_rgb, **options):
+    settings = DEFAULTS | options
+    ratings, tags, categories = manager.interrogate(
+        image_rgb,
+        settings["model_name"],
+        settings["use_cpu"],
+        settings["unload_model_after_running"],
     )
-
-    model_csv_filename = load_file_from_url(
-        url=f'https://huggingface.co/lllyasviel/misc/resolve/main/{model_name}.csv',
-        model_dir=path_clip_vision,
-        file_name=f'{model_name}.csv',
+    selected = {
+        tag: confidence
+        for tag, confidence in tags.items()
+        if categories.get(tag, "general") in settings["categories"]
+        and confidence
+        >= (
+            settings["character_threshold"]
+            if categories.get(tag) == "character"
+            else settings["threshold"]
+        )
+    }
+    processed = Interrogator.postprocess_tags(
+        selected,
+        threshold=0,
+        additional_tags=split_str(settings["additional_tags"]),
+        exclude_tags=split_str(settings["exclude_tags"]),
+        sort_by_alphabetical_order=settings["sort_by_alphabetical_order"],
+        add_confident_as_weight=settings["add_confident_as_weight"],
+        replace_underscore=settings["replace_underscore"],
+        replace_underscore_excludes=split_str(settings["replace_underscore_excludes"]),
+        escape_tag=settings["escape_tag"],
     )
+    return ", ".join(processed), ratings, processed
 
-    if global_model is not None:
-        model = global_model
-    else:
-        model = InferenceSession(model_onnx_filename, providers=ort.get_available_providers())
-        global_model = model
 
-    input = model.get_inputs()[0]
-    height = input.shape[1]
-
-    image = Image.fromarray(image_rgb)  # RGB
-    ratio = float(height)/max(image.size)
-    new_size = tuple([int(x*ratio) for x in image.size])
-    image = image.resize(new_size, Image.LANCZOS)
-    square = Image.new("RGB", (height, height), (255, 255, 255))
-    square.paste(image, ((height-new_size[0])//2, (height-new_size[1])//2))
-
-    image = np.array(square).astype(np.float32)
-    image = image[:, :, ::-1]  # RGB -> BGR
-    image = np.expand_dims(image, 0)
-
-    if global_csv is not None:
-        csv_lines = global_csv
-    else:
-        csv_lines = []
-        with open(model_csv_filename) as f:
-            reader = csv.reader(f)
-            next(reader)
-            for row in reader:
-                csv_lines.append(row)
-        global_csv = csv_lines
-
-    tags = []
-    general_index = None
-    character_index = None
-    for line_num, row in enumerate(csv_lines):
-        if general_index is None and row[2] == "0":
-            general_index = line_num
-        elif character_index is None and row[2] == "4":
-            character_index = line_num
-        tags.append(row[1])
-
-    label_name = model.get_outputs()[0].name
-    probs = model.run([label_name], {input.name: image})[0]
-
-    result = list(zip(tags, probs[0]))
-
-    general = [item for item in result[general_index:character_index] if item[1] > threshold]
-    character = [item for item in result[character_index:] if item[1] > character_threshold]
-
-    all = character + general
-    remove = [s.strip() for s in exclude_tags.lower().split(",")]
-    all = [tag for tag in all if tag[0] not in remove]
-
-    res = ", ".join((item[0].replace("(", "\\(").replace(")", "\\)") for item in all)).replace('_', ' ')
-    return res
+def default_interrogator(
+    image_rgb, threshold=0.35, character_threshold=0.85, exclude_tags="", **options
+):
+    """Keep the existing string-returning API for scripts and other callers."""
+    return interrogate_image(
+        image_rgb,
+        threshold=threshold,
+        character_threshold=character_threshold,
+        exclude_tags=exclude_tags,
+        **options,
+    )[0]

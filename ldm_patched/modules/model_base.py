@@ -12,12 +12,15 @@ class ModelType(Enum):
     EPS = 1
     V_PREDICTION = 2
     V_PREDICTION_EDM = 3
+    FLOW = 4
 
 
-from ldm_patched.modules.model_sampling import EPS, V_PREDICTION, ModelSamplingDiscrete, ModelSamplingContinuousEDM
+from ldm_patched.modules.model_sampling import EPS, V_PREDICTION, ModelSamplingDiscrete, ModelSamplingContinuousEDM, ModelSamplingDiscreteFlow
 
 
 def model_sampling(model_config, model_type):
+    if model_type == ModelType.FLOW:
+        return ModelSamplingDiscreteFlow(model_config)
     s = ModelSamplingDiscrete
 
     if model_type == ModelType.EPS:
@@ -35,7 +38,7 @@ def model_sampling(model_config, model_type):
 
 
 class BaseModel(torch.nn.Module):
-    def __init__(self, model_config, model_type=ModelType.EPS, device=None):
+    def __init__(self, model_config, model_type=ModelType.EPS, device=None, unet_model=UNetModel, operations=None):
         super().__init__()
 
         unet_config = model_config.unet_config
@@ -44,11 +47,12 @@ class BaseModel(torch.nn.Module):
         self.manual_cast_dtype = model_config.manual_cast_dtype
 
         if not unet_config.get("disable_unet_model_creation", False):
-            if self.manual_cast_dtype is not None:
-                operations = ldm_patched.modules.ops.manual_cast
-            else:
-                operations = ldm_patched.modules.ops.disable_weight_init
-            self.diffusion_model = UNetModel(**unet_config, device=device, operations=operations)
+            if operations is None:
+                if self.manual_cast_dtype is not None:
+                    operations = ldm_patched.modules.ops.manual_cast
+                else:
+                    operations = ldm_patched.modules.ops.disable_weight_init
+            self.diffusion_model = unet_model(**unet_config, device=device, operations=operations)
         self.model_type = model_type
         self.model_sampling = model_sampling(model_config, model_type)
 
