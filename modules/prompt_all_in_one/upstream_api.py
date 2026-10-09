@@ -157,6 +157,8 @@ def create_router(settings, store):
             value = settings.load()[OPTION_KEYS[key]]
             if key == "translateApi" and value == "mymemory":
                 value = "myMemory"
+        if value is None and key == "onlyCsvOnAuto":
+            value = True
         if value is None and key == "tagCompleteFile":
             from modules.tagcomplete.api import services as completion_services
 

@@ -30,7 +30,7 @@ export default {
         },
         onlyCsvOnAuto: {
             type: Boolean,
-            default: false
+            default: true
         },
         groupTagsTranslate: {
             type: Boolean,

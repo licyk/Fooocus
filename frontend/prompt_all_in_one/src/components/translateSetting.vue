@@ -164,7 +164,7 @@ export default {
             tagCompleteFilesLoading: false,
             tagCompleteFileKey: '',
             tagCompleteResults: [],
-            onlyCsvOnAutoValue: false,
+            onlyCsvOnAutoValue: true,
 
             groupTagsTranslateValue: true,
 

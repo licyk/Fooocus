@@ -223,7 +223,7 @@ export default {
             // hideDefaultInput: false,
             enableTooltip: true,
             tagCompleteFile: '',
-            onlyCsvOnAuto: false,
+            onlyCsvOnAuto: true,
 
             startWatchSave: false,
 
