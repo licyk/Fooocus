@@ -24,56 +24,56 @@ Again, recently many fake websites exist on Google when you search “fooocus”
 
 # Features
 
-## 本分支新增功能
+## Features Added in This Branch
 
-| 功能 | 使用入口与要点 |
+| Feature | Where to find it and key details |
 | --- | --- |
-| Anima | 选择 `anima` 预设，或运行 `python entry_with_update.py --preset anima`；默认 Euler/simple、40 步、CFG 4.5。支持文生图、图生图、重绘、扩图、兼容 LoRA，以及 Anima → Anima、SDXL → Anima 精修。 |
-| UNet 深度收缩 | **高级设置 → 开发者调试模式 → UNet 深度收缩**，位于 FreeU 左侧，默认关闭；支持 SDXL、SD 1.x 和 Anima 的主模型与精修模型。可调整块编号、倍率、进度区间和插值；默认块 3、倍率 2、进度 0–0.35。Anima 的块编号从 0 开始，表示 Transformer 块；最终图片尺寸保持不变。 |
-| 普通 / 柔和重绘 | **图生图 → 图片重绘**，默认无需专用重绘模型，支持 SDXL、Anima 和增强重绘。提供蒙版模糊、显示透明度、正反蒙版、四种内容处理、区域选择和边缘预留；默认仅蒙版区域，四周预留 32 像素。柔和重绘默认关闭，可调时序、原图保留、过渡对比度、蒙版影响和差异阈值 / 对比度。 |
-| 图片反推 | **图生图 → 图像提示词反推 → 画作 / 动漫图片**，支持 WD14、WD v3 与 CL Tagger 的全部 17 个模型选项，默认 MOAT v2；照片使用 BLIP。可调通用 / 角色阈值、类别、附加 / 排除标签、排序、权重、转义、CPU、卸载和置信度显示，也用于自动反推。模型首次使用时下载。 |
+| Anima | Select the `anima` preset or run `python entry_with_update.py --preset anima`. Defaults: Euler/simple, 40 steps, CFG 4.5. Supports text-to-image, image-to-image, inpainting, outpainting, compatible LoRAs, and Anima → Anima or SDXL → Anima refinement. |
+| UNet Deep Shrink | **Advanced → Developer Debug Mode → UNet Deep Shrink**, to the left of FreeU; disabled by default. Supports SDXL, SD 1.x, and Anima base and refiner models. Adjust the block index, shrink factor, progress range, and interpolation; defaults: block 3, factor 2, progress 0–0.35. Anima uses zero-based Transformer block indices. Final image dimensions remain unchanged. |
+| Standard / Soft Inpainting | **Input Image → Inpaint or Outpaint**. Uses no dedicated inpainting model by default and supports SDXL, Anima, and enhancement inpainting. Includes mask blur, display opacity, normal/inverted masks, four masked-content modes, region selection, and padding. Defaults: masked area only, 32 pixels of padding on each side. Soft inpainting is disabled by default; adjust its schedule, original-image preservation, transition contrast, mask influence, and difference threshold/contrast. |
+| Image Tagging | **Input Image → Describe → Art/Anime**. Supports all 17 WD14, WD v3, and CL Tagger model options; defaults to MOAT v2. Photos use BLIP. Adjust general/character thresholds, categories, added/excluded tags, sorting, weights, escaping, CPU use, unloading, and confidence display. These settings also apply to automatic image description. Models download on first use. |
 
-Anima 模型文件：生成模型放入 `models/checkpoints/`，`qwen_3_06b_base.safetensors` 放入 `models/text_encoders/`，`qwen_image_vae.safetensors` 放入 `models/vae/`。可在 `config.txt` 设置 `anima_text_encoder`、`anima_vae` 及对应目录；默认缺失组件会在使用时下载。推荐 Euler/simple；不支持 FP8/GGUF、FreeU、embedding、SDXL ControlNet / Image Prompt / FaceSwap，以及 LCM / Lightning / Hyper-SD。Anima 主模型暂不支持 SDXL / SD 1.5 精修。
+Anima model files: place the generation model in `models/checkpoints/`, `qwen_3_06b_base.safetensors` in `models/text_encoders/`, and `qwen_image_vae.safetensors` in `models/vae/`. Set `anima_text_encoder`, `anima_vae`, and their directories in `config.txt`; missing default components download when needed. Euler/simple is recommended. FP8/GGUF, FreeU, embeddings, SDXL ControlNet / Image Prompt / FaceSwap, and LCM / Lightning / Hyper-SD are unsupported. Anima base models currently do not support SDXL / SD 1.5 refiners.
 
-普通重绘可在“重绘实现方式”切回 Fooocus 专用模型，或设置 `"default_inpaint_backend": "fooocus"`；涉及 Anima 时使用普通重绘。重绘和深度收缩参数均支持图片元数据保存与回填。
+Switch standard inpainting back to the dedicated Fooocus model using **Inpaint implementation** or `"default_inpaint_backend": "fooocus"`. Use standard inpainting when Anima is involved. Inpainting and deep shrink settings can be saved to image metadata and restored from it.
 
-### 运行环境
+### Runtime Environment
 
-启动时自动检查 PyTorch、torchvision 的可用性及项目依赖版本，未满足要求时安装并复查；PyTorch 最低版本为 2.8。自动识别 NVIDIA（按驱动选择 CUDA 13.0 / 12.8 / 12.6）、AMD（ROCm）、Intel Arc / Core Ultra（XPU），macOS 使用 MPS，其余使用 CPU。已有可用环境不会自动升级；显卡和驱动仍需满足对应后端要求。
+Startup checks PyTorch and torchvision availability and project dependency versions, installs packages when requirements are unmet, and checks again. PyTorch 2.8 or newer is required. Automatically detects NVIDIA (CUDA 13.0 / 12.8 / 12.6 according to the driver), AMD (ROCm), and Intel Arc / Core Ultra (XPU); macOS uses MPS, and other devices use CPU. Existing working environments are not automatically upgraded. Hardware and drivers must meet the selected backend's requirements.
 
-可使用 `--torch-backend auto|cuda|cuda128|cuda126|rocm|xpu|mps|cpu` 指定后端，`--reinstall-torch` 重装配套的 PyTorch / torchvision，`--index-url <地址>` 指定项目依赖镜像，`--skip-check` 跳过检查。`--always-cpu` 在自动选择时使用 CPU；重装会清理旧 torch、torchvision、torchaudio 和 xformers。`TORCH_INDEX_URL` 可覆盖 PyTorch 索引，`REQS_FILE` 可指定依赖文件。
+Use `--torch-backend auto|cuda|cuda128|cuda126|rocm|xpu|mps|cpu` to select a backend, `--reinstall-torch` to reinstall matching PyTorch / torchvision versions, `--index-url <URL>` to select a project dependency mirror, or `--skip-check` to skip checks. `--always-cpu` selects CPU in automatic mode. Reinstallation removes the old torch, torchvision, torchaudio, and xformers packages. `TORCH_INDEX_URL` overrides the PyTorch index; `REQS_FILE` selects the requirements file.
 
 ### Prompt Assistance
 
-在 **高级设置 → 提示词辅助** 中分别展开 Tag Complete 和 Prompt All-in-One，两者均默认启用，可独立关闭，并设置正向、负向、重绘和增强输入框的启用范围。
+Expand Tag Complete and Prompt All-in-One separately under **Advanced → Prompt Assistance**. Both are enabled by default and can be disabled independently. Choose which positive, negative, inpainting, and enhancement prompt fields each feature applies to.
 
-- **Tag Complete**：支持标签 / 中文 / 别名、`@画师`、`<lora:名称`、`embedding:名称`、`__通配符`、`<chant:片段` 和 `$样式` 补全。↑ / ↓ 选择、Enter 确认、Tab 选首项、Esc 关闭；普通标签默认追加逗号和空格。可调搜索、过滤、候选数量、插入规则、预览、实时翻译、频率排序、快捷键和颜色。
-- **Prompt All-in-One**：提供标签编辑、权重、拖动排序、批量操作、历史、收藏、分类词库、翻译、智能提示词和主题。设置图标打开 API 与编辑选项；本地翻译默认使用与 Tag Complete 相同目录下的 `tag_pp_zh.csv`，可选择其他 CSV 或关闭。API 凭证按登录用户保存在服务器；外部翻译 / 智能提示词发送内容到所选服务，MBart50 使用已有本地模型。
+- **Tag Complete**: Completes tags, Chinese terms, aliases, `@artist`, `<lora:name`, `embedding:name`, `__wildcard`, `<chant:snippet`, and `$style`. Use ↑ / ↓ to select, Enter to confirm, Tab to choose the first result, and Esc to close. Ordinary tags receive a comma and space by default. Configure searching, filtering, result limits, insertion rules, previews, live translation, frequency sorting, shortcuts, and colors.
+- **Prompt All-in-One**: Provides tag editing, weights, drag sorting, batch operations, history, favorites, categorized vocabularies, translation, smart prompts, and themes. The settings icon opens API and editor options. Local translation defaults to `tag_pp_zh.csv` in the same directory used by Tag Complete; select another CSV or disable it. API credentials are stored on the server per logged-in user. External translation / smart prompt providers receive the submitted content; MBart50 uses an existing local model.
 
-默认数据目录是 `tags/`，标签库为 `tag_pp.csv`，翻译库为 `tag_pp_zh.csv`；可通过 `path_tagcomplete` 修改目录，放入文件后刷新。标签 CSV 格式为 `tag,category,count,aliases[,translation]`，翻译为 `tag,translation`，均使用 UTF-8、无表头；旧三列翻译需开启旧格式选项。Chants 使用 JSON，模型和通配符读取 Fooocus 配置的目录。
+The default data directory is `tags/`, with `tag_pp.csv` for tags and `tag_pp_zh.csv` for translations. Change the directory using `path_tagcomplete` and refresh after adding files. Tag CSVs use `tag,category,count,aliases[,translation]`; translation CSVs use `tag,translation`. Both use UTF-8 without headers. Older three-column translations require the legacy-format option. Chants use JSON; models and wildcards are read from the directories configured in Fooocus.
 
-Tag Complete 偏好保存在当前浏览器；“保存为默认值”更新服务器默认值，“加载服务器默认值 / 恢复内置默认值”应用到当前浏览器。已有保存选择优先。两者的服务器配置统一放在主配置所在目录的 `userdata/` 中：
+Tag Complete preferences are stored in the current browser. **Save as default** updates server defaults; **Load server defaults / Restore built-in defaults** applies them to the current browser. Existing saved choices take precedence. Both features store their server settings in `userdata/` beside the main configuration file:
 
 ```text
 userdata/
 ├── tagcomplete/
-│   └── settings.json          # 提示词补全服务器默认值
+│   └── settings.json          # Tag completion server defaults
 └── prompt_all_in_one/
-    ├── settings.json          # 编辑器服务器默认值
-    └── editor.sqlite3         # 按登录用户保存偏好、历史、收藏和 API 配置
+    ├── settings.json          # Editor server defaults
+    └── editor.sqlite3         # Preferences, history, favorites, and API settings per user
 ```
 
-只读取新路径，不迁移或读取根目录旧 JSON 配置。`userdata/` 不提交到 Git，也不通过 Gradio 文件接口公开。
+Only the new paths are read; old JSON settings in the project root are neither migrated nor read. `userdata/` is excluded from Git and blocked from the Gradio file API.
 
-### 来源与开发
+### Attribution and Development
 
-- Anima 与深度收缩参考 ComfyUI，Anima 源码基于提交 `d49e888586dd8ae012c0667b33466b815fee07f7`（GPL-3.0）；Qwen / T5 分词器来自 [Qwen2.5](https://huggingface.co/Qwen/Qwen2.5-0.5B) / [T5 v1.1](https://huggingface.co/google/t5-v1_1-xxl)，保留词表和 [Apache-2.0 许可](ldm_patched/ldm/anima/LICENSE-APACHE-2.0)，不包含编码器权重。
-- Tag Complete 参考 [a1111-sd-webui-tagcomplete](https://github.com/DominikDoom/a1111-sd-webui-tagcomplete) 提交 `4170882f90b47be130a0ff9314f663c230b9153d`；Danbooru、附加标签和示例 Chants 来自该扩展，许可见 [Tag Complete](tags/TAGCOMPLETE_LICENSE) 与 [textarea-caret-position](tags/CARET_LICENSE)（MIT）。
-- Prompt All-in-One 源码与来源记录见 [UPSTREAM.json](frontend/prompt_all_in_one/UPSTREAM.json)，保留 [MIT 许可](frontend/prompt_all_in_one/LICENSE.upstream)；翻译后端保留 [translators GPL-3.0 许可](modules/prompt_all_in_one/providers/LICENSE.translators)。普通 / 柔和重绘来自 Forge Classic，保留 [AGPL-3.0 许可](extras/forge_inpaint_LICENSE)。WD14 / CL Tagger 参考 `sd-webui-wd14-tagger` 提交 `ded550b7f6b8873a589ab258377836e49a85ccba`，沿用源码归属声明，权重许可由各模型仓库提供。
+- Anima and deep shrink follow ComfyUI; the Anima source is based on commit `d49e888586dd8ae012c0667b33466b815fee07f7` (GPL-3.0). Qwen / T5 tokenizers come from [Qwen2.5](https://huggingface.co/Qwen/Qwen2.5-0.5B) / [T5 v1.1](https://huggingface.co/google/t5-v1_1-xxl), retaining vocabularies and the [Apache-2.0 license](ldm_patched/ldm/anima/LICENSE-APACHE-2.0); encoder weights are not included.
+- Tag Complete follows [a1111-sd-webui-tagcomplete](https://github.com/DominikDoom/a1111-sd-webui-tagcomplete) commit `4170882f90b47be130a0ff9314f663c230b9153d`. Danbooru data, additional tags, and sample Chants come from that extension; see the [Tag Complete](tags/TAGCOMPLETE_LICENSE) and [textarea-caret-position](tags/CARET_LICENSE) MIT licenses.
+- Prompt All-in-One source and provenance are recorded in [UPSTREAM.json](frontend/prompt_all_in_one/UPSTREAM.json), with its [MIT license](frontend/prompt_all_in_one/LICENSE.upstream) retained. The translation backend retains the [translators GPL-3.0 license](modules/prompt_all_in_one/providers/LICENSE.translators). Standard / soft inpainting comes from Forge Classic, retaining its [AGPL-3.0 license](extras/forge_inpaint_LICENSE). WD14 / CL Tagger follows `sd-webui-wd14-tagger` commit `ded550b7f6b8873a589ab258377836e49a85ccba`, retaining source attribution; weight licenses are provided by the respective model repositories.
 
-Prompt All-in-One 前端源码位于 `frontend/prompt_all_in_one/`，修改后在该目录运行 `npm ci`、`npm test`、`npm run build`；项目自带编译资源，运行时无需 Node.js。扩展主题放在 `styles/extensions/<名称>/`，包含 `manifest.json`（`name`、可选 `i18n` / `author`、`type: theme|enhance`）和 `style.min.css`；图片通过 `/prompt-all-in-one/upstream/styles?file=extensions/<名称>/<图片>` 加载。
+Prompt All-in-One frontend source is in `frontend/prompt_all_in_one/`. After changes, run `npm ci`, `npm test`, and `npm run build` there. Compiled assets are included, so Node.js is not required at runtime. Extension themes go in `styles/extensions/<name>/` and contain `manifest.json` (`name`, optional `i18n` / `author`, and `type: theme|enhance`) plus `style.min.css`. Images are loaded through `/prompt-all-in-one/upstream/styles?file=extensions/<name>/<image>`.
 
-## 原版功能
+## Original Features
 
 Below is a quick list using Midjourney's examples:
 
