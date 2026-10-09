@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from modules.localization import translate as translate_ui
 from modules.tagcomplete.api import current_user
+from modules.tagcomplete.config import DEFAULT_TRANSLATION_FILE
 
 from .api import User, dictionary
 from .history import History
@@ -156,6 +157,18 @@ def create_router(settings, store):
             value = settings.load()[OPTION_KEYS[key]]
             if key == "translateApi" and value == "mymemory":
                 value = "myMemory"
+        if value is None and key == "tagCompleteFile":
+            from modules.tagcomplete.api import services as completion_services
+
+            _, catalog, _ = completion_services()
+            value = next(
+                (
+                    entry["id"]
+                    for entry in catalog.get()["datasets"]
+                    if entry["name"] == DEFAULT_TRANSLATION_FILE
+                ),
+                None,
+            )
         return value
 
     def save_value(storage, user, key, value):
@@ -705,7 +718,7 @@ def create_router(settings, store):
                 {
                     "name": translate_ui("Fooocus Tag Autocomplete"),
                     "enabled": True,
-                    "url": "tagcomplete.md",
+                    "url": "https://github.com/licyk/Fooocus/blob/feat-1/readme.md#prompt-assistance",
                 }
             ]
         }

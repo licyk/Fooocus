@@ -263,7 +263,9 @@
       "path": "frontend/prompt_all_in_one/styles/extensions/README.MD",
       "source_path": "styles/extensions/README.MD",
       "source_sha256": "c2add369ec770be7c3136788978f6714e81905952f55186c3126c5623179a228",
-      "modified": false
+      "modified": false,
+      "removed": true,
+      "replaced_by": "readme.md"
     },
     {
       "path": "frontend/prompt_all_in_one/styles/extensions/Webui/images/code.svg",

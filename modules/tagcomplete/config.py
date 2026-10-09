@@ -8,6 +8,8 @@ import tempfile
 import threading
 from pathlib import Path
 
+DEFAULT_TAG_FILE = "tag_pp.csv"
+DEFAULT_TRANSLATION_FILE = "tag_pp_zh.csv"
 
 KEYMAP = {
     "up": "ArrowUp",
@@ -36,8 +38,15 @@ FIELDS = [
     ("negative", "Negative prompts", True, "bool", "General", None),
     ("inpaint", "Inpaint additional prompt", True, "bool", "General", None),
     ("enhance", "Enhancement prompts", True, "bool", "General", None),
-    ("tag_file", "Tag dataset", "danbooru.csv", "csv", "Datasets", None),
-    ("translation_file", "Tag translations", "None", "csv", "Datasets", None),
+    ("tag_file", "Tag dataset", DEFAULT_TAG_FILE, "csv", "Datasets", None),
+    (
+        "translation_file",
+        "Tag translations",
+        DEFAULT_TRANSLATION_FILE,
+        "csv",
+        "Datasets",
+        None,
+    ),
     (
         "translation_old_format",
         "Legacy three-column translations",

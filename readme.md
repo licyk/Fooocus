@@ -12,7 +12,7 @@ Fooocus presents a rethinking of image generator designs. The software is offlin
 
 **Recently many fake websites exist on Google when you search “fooocus”. Do not trust those – here is the only official source of Fooocus.**
 
-# Project Status: Limited Long-Term Support (LTS) with Bug Fixes Only
+# Upstream Project Status: Limited Long-Term Support (LTS) with Bug Fixes Only
 
 The Fooocus project, built entirely on the **Stable Diffusion XL** architecture, is now in a state of limited long-term support (LTS) with bug fixes only. As the existing functionalities are considered as nearly free of programmartic issues (Thanks to [mashb1t](https://github.com/mashb1t)'s huge efforts), future updates will focus exclusively on addressing any bugs that may arise. 
 
@@ -24,11 +24,39 @@ Again, recently many fake websites exist on Google when you search “fooocus”
 
 # Features
 
-This fork also supports [Anima models](anima.md), with a dedicated `anima` preset.
+## 本分支新增功能
 
-[Prompt assistance](tagcomplete.md) provides tag, artist, LoRA, embedding, wildcard, snippet and native Style completion. Configure it in **Advanced → Prompt Assistance**.
+| 功能 | 使用入口与要点 |
+| --- | --- |
+| Anima | 选择 `anima` 预设，或运行 `python entry_with_update.py --preset anima`；默认 Euler/simple、40 步、CFG 4.5。支持文生图、图生图、重绘、扩图、兼容 LoRA，以及 Anima → Anima、SDXL → Anima 精修。 |
+| UNet 深度收缩 | **高级设置 → 开发者调试模式 → UNet 深度收缩**，位于 FreeU 左侧，默认关闭；支持 SDXL、SD 1.x 和 Anima 的主模型与精修模型。可调整块编号、倍率、进度区间和插值；默认块 3、倍率 2、进度 0–0.35。Anima 的块编号从 0 开始，表示 Transformer 块；最终图片尺寸保持不变。 |
+| 普通 / 柔和重绘 | **图生图 → 图片重绘**，默认无需专用重绘模型，支持 SDXL、Anima 和增强重绘。提供蒙版模糊、显示透明度、正反蒙版、四种内容处理、区域选择和边缘预留；默认仅蒙版区域，四周预留 32 像素。柔和重绘默认关闭，可调时序、原图保留、过渡对比度、蒙版影响和差异阈值 / 对比度。 |
+| 图片反推 | **图生图 → 图像提示词反推 → 画作 / 动漫图片**，支持 WD14、WD v3 与 CL Tagger 的全部 17 个模型选项，默认 MOAT v2；照片使用 BLIP。可调通用 / 角色阈值、类别、附加 / 排除标签、排序、权重、转义、CPU、卸载和置信度显示，也用于自动反推。模型首次使用时下载。 |
 
-[Prompt All-in-One](prompt-all-in-one.md) ports the complete upstream Vue interface and editing logic, including weights, drag sorting, history, favorites, categorized tags, translation settings and theme extensions. It is enabled by default and has its own switch.
+Anima 模型文件：生成模型放入 `models/checkpoints/`，`qwen_3_06b_base.safetensors` 放入 `models/text_encoders/`，`qwen_image_vae.safetensors` 放入 `models/vae/`。可在 `config.txt` 设置 `anima_text_encoder`、`anima_vae` 及对应目录；默认缺失组件会在使用时下载。推荐 Euler/simple；不支持 FP8/GGUF、FreeU、embedding、SDXL ControlNet / Image Prompt / FaceSwap，以及 LCM / Lightning / Hyper-SD。Anima 主模型暂不支持 SDXL / SD 1.5 精修。
+
+普通重绘可在“重绘实现方式”切回 Fooocus 专用模型，或设置 `"default_inpaint_backend": "fooocus"`；涉及 Anima 时使用普通重绘。重绘和深度收缩参数均支持图片元数据保存与回填。
+
+### Prompt Assistance
+
+在 **高级设置 → 提示词辅助** 中分别展开 Tag Complete 和 Prompt All-in-One，两者均默认启用，可独立关闭，并设置正向、负向、重绘和增强输入框的启用范围。
+
+- **Tag Complete**：支持标签 / 中文 / 别名、`@画师`、`<lora:名称`、`embedding:名称`、`__通配符`、`<chant:片段` 和 `$样式` 补全。↑ / ↓ 选择、Enter 确认、Tab 选首项、Esc 关闭；普通标签默认追加逗号和空格。可调搜索、过滤、候选数量、插入规则、预览、实时翻译、频率排序、快捷键和颜色。
+- **Prompt All-in-One**：提供标签编辑、权重、拖动排序、批量操作、历史、收藏、分类词库、翻译、智能提示词和主题。设置图标打开 API 与编辑选项；本地翻译默认使用与 Tag Complete 相同目录下的 `tag_pp_zh.csv`，可选择其他 CSV 或关闭。API 凭证按登录用户保存在服务器；外部翻译 / 智能提示词发送内容到所选服务，MBart50 使用已有本地模型。
+
+默认数据目录是 `tags/`，标签库为 `tag_pp.csv`，翻译库为 `tag_pp_zh.csv`；可通过 `path_tagcomplete` 修改目录，放入文件后刷新。标签 CSV 格式为 `tag,category,count,aliases[,translation]`，翻译为 `tag,translation`，均使用 UTF-8、无表头；旧三列翻译需开启旧格式选项。Chants 使用 JSON，模型和通配符读取 Fooocus 配置的目录。
+
+Tag Complete 偏好保存在当前浏览器；“保存为默认值”更新服务器默认值，“加载服务器默认值 / 恢复内置默认值”应用到当前浏览器。已有保存选择优先。Prompt All-in-One 编辑器内部偏好、历史和收藏按登录用户保存在 `userdata/prompt_all_in_one/editor.sqlite3`。
+
+### 来源与开发
+
+- Anima 与深度收缩参考 ComfyUI，Anima 源码基于提交 `d49e888586dd8ae012c0667b33466b815fee07f7`（GPL-3.0）；Qwen / T5 分词器来自 [Qwen2.5](https://huggingface.co/Qwen/Qwen2.5-0.5B) / [T5 v1.1](https://huggingface.co/google/t5-v1_1-xxl)，保留词表和 [Apache-2.0 许可](ldm_patched/ldm/anima/LICENSE-APACHE-2.0)，不包含编码器权重。
+- Tag Complete 参考 [a1111-sd-webui-tagcomplete](https://github.com/DominikDoom/a1111-sd-webui-tagcomplete) 提交 `4170882f90b47be130a0ff9314f663c230b9153d`；Danbooru、附加标签和示例 Chants 来自该扩展，许可见 [Tag Complete](tags/TAGCOMPLETE_LICENSE) 与 [textarea-caret-position](tags/CARET_LICENSE)（MIT）。
+- Prompt All-in-One 源码与来源记录见 [UPSTREAM.json](frontend/prompt_all_in_one/UPSTREAM.json)，保留 [MIT 许可](frontend/prompt_all_in_one/LICENSE.upstream)；翻译后端保留 [translators GPL-3.0 许可](modules/prompt_all_in_one/providers/LICENSE.translators)。普通 / 柔和重绘来自 Forge Classic，保留 [AGPL-3.0 许可](extras/forge_inpaint_LICENSE)。WD14 / CL Tagger 参考 `sd-webui-wd14-tagger` 提交 `ded550b7f6b8873a589ab258377836e49a85ccba`，沿用源码归属声明，权重许可由各模型仓库提供。
+
+Prompt All-in-One 前端源码位于 `frontend/prompt_all_in_one/`，修改后在该目录运行 `npm ci`、`npm test`、`npm run build`；项目自带编译资源，运行时无需 Node.js。扩展主题放在 `styles/extensions/<名称>/`，包含 `manifest.json`（`name`、可选 `i18n` / `author`、`type: theme|enhance`）和 `style.min.css`；图片通过 `/prompt-all-in-one/upstream/styles?file=extensions/<名称>/<图片>` 加载。
+
+## 原版功能
 
 Below is a quick list using Midjourney's examples:
 
