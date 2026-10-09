@@ -180,7 +180,6 @@ def worker():
     import numpy as np
     import torch
     import time
-    import shared
     import random
     import copy
     import cv2
@@ -209,15 +208,6 @@ def worker():
 
     pid = os.getpid()
     print(f'Started worker with PID {pid}')
-
-    try:
-        async_gradio_app = shared.gradio_root
-        flag = f'''App started successful. Use the app with {str(async_gradio_app.local_url)} or {str(async_gradio_app.server_name)}:{str(async_gradio_app.server_port)}'''
-        if async_gradio_app.share:
-            flag += f''' or {async_gradio_app.share_url}'''
-        print(flag)
-    except Exception as e:
-        print(e)
 
     def progressbar(async_task, number, text, **params):
         log_text = text.format(**params) if params else text
